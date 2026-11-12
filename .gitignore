@@ -1,0 +1,7 @@
+# Sessão de login do portal: nunca versionar nem compartilhar
+coletor/perfil/
+coletor/dump/
+bi.js
+mercado.js
+coletor/estado.json
+.claude/
