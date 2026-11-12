@@ -38,6 +38,13 @@
   .col{display:flex;flex-direction:column;gap:1vh;min-height:0}
   .col .panel{flex:1}
   .col.right .panel:first-child{flex:1.7}
+  #bovMes{flex:0 0 auto}                 /* só 2 cartões: o resto da coluna fica para a lista de embarques */
+  #bovMes .kpis{grid-template-columns:repeat(6,1fr)}
+  #bovMes .kpi{grid-column:span 2}
+  #bovMes .kpi.ano{grid-column:span 2}
+  #bovMes .kpi .v{font-size:3.4vh}
+  #bovMes .kpi.ano .v{font-size:3vh;color:var(--muted)}
+  #bovMes .kpi .l{font-size:1.05vh}
   .col .kpi{padding:.4vh .6vw}
   .col .kpi.big .v{font-size:3.6vh}
   .col .kpi .v{font-size:2.5vh}
@@ -54,7 +61,18 @@
   .kpi.big{grid-column:1/-1}
   .kpi.big .v{font-size:4.6vh;color:var(--accent2)}
   .bar{height:1.4vh;background:#0a1c14;border:1px solid var(--line);border-radius:1vh;overflow:hidden;margin:.6vh 0}
-  .bar i{display:block;height:100%;background:linear-gradient(90deg,#1f8f5a,var(--accent))}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#1f8f5a,var(--accent));
+    transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  /* ---- transições: o que troca sai em fade e o novo entra em cascata; barras crescem; números contam ---- */
+  .suave{transition:opacity .28s ease}
+  .suave.sai{opacity:0}
+  @keyframes entra{from{opacity:0;transform:translateY(.9vh)}}
+  @keyframes cresce{from{width:0}}
+  @keyframes sobe{from{transform:scaleY(0)}}
+  .entra > *{animation:entra .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 60ms)}
+  .ctr .bar i{animation:cresce 1s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + 250ms)}
+  .bars i{transform-origin:bottom;animation:sobe .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 50ms + 150ms)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
   table{width:100%;border-collapse:collapse;font-size:1.5vh}
   th{font-size:1.2vh;color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.08em;
      padding:.4vh .3vw;border-bottom:1px solid var(--line)}
@@ -71,19 +89,25 @@
   .rotulo:before{display:none}
   .chuva{display:grid;grid-template-columns:repeat(7,1fr);gap:.5vw;flex:1;min-height:0}
   .farm .cab{display:flex;justify-content:space-between;align-items:baseline;gap:.3vw}
-  .farm .now{line-height:1.25}
+  .farm .now{display:flex;justify-content:space-between;align-items:flex-end;margin-top:.5vh}
+  .ontem{display:flex;align-items:baseline;gap:.25vw}
+  .ontem .l{font-size:1.1vh;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .ontem .u{font-size:1.2vh;color:var(--muted)}
+  .acum{display:flex;flex-direction:column;align-items:flex-end;gap:.1vh}
+  .acum span{font-size:1.15vh;color:var(--muted)}
+  .acum i{font-style:normal;margin-right:.35vw}
+  .acum b{color:var(--text);font-size:1.4vh}
   .farm .dado{font-size:1.1vh;color:var(--muted)}
   .farm .dado.velho{color:var(--warn);font-weight:700}
-  .farm .now b{color:var(--text);font-size:1.3vh}
   .farm{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .6vw;display:flex;flex-direction:column}
   .farm b{font-size:1.7vh}
   .farm .now{font-size:1.3vh;color:var(--muted)}
-  .farm .now em{font-style:normal;color:var(--accent);font-size:2.2vh;font-weight:700}
+  .farm .now em{font-style:normal;color:var(--accent);font-size:3vh;font-weight:700;line-height:1}
   .bars{flex:1;display:flex;align-items:flex-end;gap:.4vw;margin-top:.6vh}
   .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
   .bars i{width:100%;background:linear-gradient(0deg,#1b6fa8,#59c3ff);border-radius:.3vh .3vh 0 0;min-height:2px}
   .bars span{font-size:1.1vh;color:var(--muted);margin-top:.2vh}
-  .bars em{font-style:normal;font-size:1.2vh}
+  .bars em{font-style:normal;font-size:1.1vh;color:var(--muted)}
   table.mkt td{padding:.3vh .2vw;line-height:1.25}
   table.mkt td b{font-size:1.5vh}
   table.mkt td span{font-size:1.15vh}
@@ -110,8 +134,8 @@
   .ctr .m em{font-style:normal;color:var(--accent2)}
   .ctr .bar{height:.9vh;margin:.3vh 0}
   .ctr.fim{opacity:.55}
-  #gPainel > *:not(h2){transition:opacity .3s}
-  #gPainel.troca > *:not(h2){opacity:0}
+  #gPainel > *:not(h2){transition:opacity .3s ease,transform .3s ease}
+  #gPainel.troca > *:not(h2){opacity:0;transform:translateY(.8vh)}
 </style>
 </head>
 <body>
@@ -125,18 +149,20 @@
 
   <!-- COLUNA ESQUERDA: BOVINOS -->
   <div class="col">
-    <section class="panel">
-      <h2>Bovinos · aguardando abate <small id="bovAtual"></small></h2>
+    <section class="panel" id="bovMes">
+      <h2>Bovinos <small id="bovAtual"></small></h2>
       <div class="kpis">
-        <div class="kpi big"><div class="l">Cabeças na fila</div><div class="v" id="bAg">–</div><div class="u" id="bLotes"></div></div>
         <div class="kpi"><div class="l">Embarcado (mês)</div><div class="v" id="bEmb">–</div></div>
         <div class="kpi"><div class="l">A embarcar (mês)</div><div class="v" id="bPend">–</div></div>
+        <div class="kpi"><div class="l">Abatidos (mês)</div><div class="v" id="bAbat">–</div></div>
+        <div class="kpi ano"><div class="l">Embarcado (ano)</div><div class="v" id="bEmbAno">–</div></div>
+        <div class="kpi ano"><div class="l">A embarcar (ano)</div><div class="v" id="bPendAno">–</div></div>
+        <div class="kpi ano"><div class="l">Abatidos (ano)</div><div class="v" id="bAbatAno">–</div></div>
       </div>
-      <table style="margin-top:1vh"><thead><tr><th>Filial</th><th class="n">Cabeças</th></tr></thead><tbody id="bFilial"></tbody></table>
     </section>
     <section class="panel">
-      <h2>Próximos embarques <small>cabeças</small></h2>
-      <table><thead><tr><th>Data</th><th>Frigorífico</th><th>Faz.</th><th class="n">Cab.</th></tr></thead><tbody id="bCrono"></tbody></table>
+      <h2>Próximos embarques <small id="embResumo">cabeças</small></h2>
+      <table><thead><tr><th>Data</th><th>Frigorífico</th><th>Faz.</th><th class="n">Cab.</th></tr></thead><tbody id="bCrono" class="suave entra"></tbody></table>
     </section>
   </div>
 
@@ -161,18 +187,18 @@
         <div class="kpi"><div class="l">Última saída</div><div class="v" id="gTon">–</div></div>
       </div>
       <div class="sub2"><span>Por contrato</span><span id="gPag"></span></div>
-      <div id="gContratos" class="ctrs"></div>
+      <div id="gContratos" class="ctrs suave entra"></div>
     </section>
     <section class="panel">
       <h2>Mercado <small id="mercadoData">cotações · atualização diária</small></h2>
-      <div id="mercado"></div>
+      <div id="mercado" class="suave entra"></div>
     </section>
   </div>
 
   <!-- LINHA INFERIOR: CHUVA -->
   <section class="panel wide">
-    <h2>Chuva por fazenda <small>estimativa por modelo e previsão de 5 dias: Open-Meteo (mm) · não é pluviômetro</small></h2>
-    <div class="chuva" id="chuva"></div>
+    <h2>Chuva por fazenda <small id="chuvaNota"></small></h2>
+    <div class="chuva suave entra" id="chuva"></div>
   </section>
 
   <footer>
@@ -193,16 +219,51 @@ const CFG = {
   climaAtrasoDias: 1,  // chuva medida mais velha que isso fica em laranja ("há N d")
   relogioSeg: 1,
   contratosPorPagina: 2,   // linhas de contrato visíveis por vez na lateral de grãos
-  trocaPaginaSeg: 8,       // tempo entre páginas da lista de contratos
+  trocaPaginaSeg: 8,       // tempo entre páginas da lista de contratos e de embarques
+  embarquesPorPagina: 7,   // linhas de embarque visíveis por vez (8 cabe no limite em 1920x1080)
   trocaProdutoSeg: 24,     // tempo em cada produto (soja, milho) antes de alternar
   alertaAtrasoMin: 450, // coletor roda às 7h e 13h; passou de 7,5 h sem BI novo, fica vermelho (à noite fica, é esperado)
   radarZoom: 7,            // zoom do mapa (inteiro). 7 = todas as fazendas; 8 aproxima mais
-  dolarMin: 15,        // cotação do dólar (AwesomeAPI, pública); se falhar, mantém o último valor e fica laranja
+  ordemFazendas: ["Tucano", "Java", "Ponte de Pedra", "Promissão", "Galheiro", "Panamá", "Mato Grosso"],   // ordem dos cartões de chuva
+  dolarMin: 15,       // cotação do dólar (AwesomeAPI, pública); se falhar, mantém o último valor e fica laranja
   fonteChuva: "openmeteo"  // "openmeteo" = estimativa por modelo (sempre atual) | "dlavro" = medida do BI (atrasada)
 };
 
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString("pt-BR");
+
+/* ---- helpers de transição ---- */
+const reduzir = matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Troca o HTML só se mudou; o que estava na tela sai em fade e o novo entra em cascata (classe .entra no contêiner).
+function setHtmlSuave(el, html){
+  if(el._h === html) return;                                    // nada mudou (ex.: recarga de dados): não pisca
+  if(reduzir || el._h === undefined){ el._h = html; el.innerHTML = html; return; }
+  el.classList.add("sai");
+  setTimeout(() => { el._h = html; el.innerHTML = html; el.classList.remove("sai"); }, 280);
+}
+// Texto simples com o mesmo fade.
+function setTextoSuave(el, txt){
+  if(el.textContent === txt) return;
+  el.classList.add("suave");
+  if(reduzir){ el.textContent = txt; return; }
+  el.classList.add("sai");
+  setTimeout(() => { el.textContent = txt; el.classList.remove("sai"); }, 280);
+}
+// Número que "conta" até o novo valor (na primeira vez, de 0). Valor nulo vira traço.
+function setNum(id, v, formato = fmt){
+  const el = $(id);
+  if(v == null || isNaN(v)){ el.textContent = "–"; el._n = undefined; return; }
+  const de = el._n ?? 0; el._n = v;
+  cancelAnimationFrame(el._raf);
+  if(reduzir || de === v){ el.textContent = formato(v); return; }
+  const t0 = performance.now(), dur = 900;
+  const passo = t => {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = formato(Math.round(de + (v - de) * e));
+    if(k < 1) el._raf = requestAnimationFrame(passo);
+  };
+  el._raf = requestAnimationFrame(passo);
+}
 
 /* ---------- MAPA: radar do Windy (iframe) + contornos das fazendas desenhados por cima ---------- */
 const COR = { "Tucano":"#ffd24a","Galheiro":"#35d07f","Promissão":"#ff9f43","Nova Maringá":"#59c3ff",
@@ -296,27 +357,33 @@ async function buscarModelo(){
 function desenharClima(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const usaModelo = CFG.fonteChuva === "openmeteo";
-  const fazendas = usaModelo ? Object.keys(modelo) : climaMedido.map(c => c.fazenda);
-  $("chuva").innerHTML = fazendas.map(nome => {
+  const ordem = nome => { const i = CFG.ordemFazendas.indexOf(nome); return i < 0 ? 99 : i; };   // fora da lista vai para o fim
+  const fazendas = (usaModelo ? Object.keys(modelo) : climaMedido.map(c => c.fazenda)).sort((a, b) => ordem(a) - ordem(b));
+  setHtmlSuave($("chuva"), fazendas.map((nome, k) => {
     const m = modelo[nome];
     const prev = m && m.prev, max = prev ? Math.max(10, ...prev) : 10;
     const barras = prev ? prev.map((mm, i) => {
       const dia = i === 0 ? "hoje" : new Date(m.datas[i] + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"short" }).replace(".", "");
-      return `<div><em>${mm}</em><i style="height:${Math.max(2, mm / max * 80)}%"></i><span>${dia}</span></div>`;
+      return `<div><em>${mm}</em><i style="--i:${i};height:${Math.max(2, mm / max * 80)}%"></i><span>${dia}</span></div>`;
     }).join("") : `<div style="color:var(--muted);font-size:1.2vh;justify-content:center">sem previsão</div>`;
 
-    let cab, linha;
+    // Cartão enxuto: nome, o valor principal em destaque (ontem) e os acumulados em coluna, mais as barras da previsão.
+    let cab = "", principal = null, acum = [];
     if(usaModelo){
-      cab = `<span class="dado">estimado (modelo)</span>`;
-      linha = m ? `ontem: <em>${m.ontem} mm</em> <span class="dado">7 d <b>${m.d7}</b> · 30 d <b>${m.d30}</b></span>` : "sem dados";
+      if(m){ principal = ["ontem", m.ontem]; acum = [["7 d", m.d7], ["30 d", m.d30]]; }
     } else {
       const f = climaMedido.find(c => c.fazenda === nome);
       const idade = Math.round((hoje - new Date(f.dado + "T00:00:00")) / 86400000), velho = idade > CFG.climaAtrasoDias;
       cab = `<span class="dado ${velho ? "velho" : ""}">${fmtDia(f.dado)}${idade > 0 ? ` · há ${idade} d` : " · hoje"}</span>`;
-      linha = `no dia: <em>${f.chuvaDia} mm</em> <span class="dado">7d <b>${f.chuva7d}</b> · mês <b>${f.chuvaMes}</b> · ano <b>${f.chuvaAno}</b></span>`;
+      principal = ["no dia", f.chuvaDia]; acum = [["7 d", f.chuva7d], ["mês", f.chuvaMes], ["ano", f.chuvaAno]];
     }
-    return `<div class="farm"><div class="cab"><b>${nome}</b>${cab}</div><div class="now">${linha}</div><div class="bars">${barras}</div></div>`;
-  }).join("");
+    const now = principal
+      ? `<div class="ontem"><span class="l">${principal[0]}</span><em>${principal[1]}</em><span class="u">mm</span></div>`
+        + `<div class="acum">${acum.map(([r, v]) => `<span><i>${r}</i><b>${v}</b></span>`).join("")}</div>`
+      : `<div class="ontem"><span class="l">sem dados</span></div>`;
+    return `<div class="farm" style="--i:${k}"><div class="cab"><b>${nome}</b>${cab}</div><div class="now">${now}</div><div class="bars">${barras}</div></div>`;
+  }).join(""));
+  $("chuvaNota").textContent = usaModelo ? "estimativa Open-Meteo · mm · próximos 5 dias" : "medido (D-Lavro) · mm";
 }
 
 function render(d){
@@ -324,14 +391,15 @@ function render(d){
     ? '<span class="tag">EXEMPLO: ' + d.exemploDe.join(" · ") + '</span>' : "";
 
   const b = d.bovinos;
-  $("bAg").textContent = fmt(b.aguardandoAbate.cabecas);
-  $("bLotes").textContent = b.aguardandoAbate.lotes + " lotes";
-  $("bEmb").textContent = fmt(b.mes.embarcado);
-  $("bPend").textContent = fmt(b.mes.aEmbarcar ?? b.mes.pendenteEmbarque);
-  $("bFilial").innerHTML = b.aguardandoAbate.porFilial
-    .map(f => `<tr><td>${f.filial}</td><td class="n">${fmt(f.cabecas)}</td></tr>`).join("");
-  $("bCrono").innerHTML = b.cronograma.slice(0, 4)
-    .map(c => `<tr><td>${c.data}</td><td>${c.frigorifico}<br><span style="color:var(--muted);font-size:1.2vh">${c.cidade}</span></td><td>${c.fazenda}</td><td class="n">${fmt(c.cabecas)}</td></tr>`).join("");
+  // setNum: o número conta até o valor novo; dado que o coletor não trouxe aparece como traço.
+  setNum("bEmb", b.mes.embarcado);
+  setNum("bPend", b.mes.aEmbarcar ?? b.mes.pendenteEmbarque);
+  setNum("bAbat", b.mes.abatidos);
+  setNum("bEmbAno", b.mes.anoEmbarcado);
+  setNum("bPendAno", b.mes.anoAEmbarcar);
+  setNum("bAbatAno", b.mes.anoAbatidos);
+  embarques = b.cronograma;
+  desenharEmbarques();
 
   // d.graos pode ser um produto só ou uma lista (soja, milho...). A tela alterna entre eles.
   graosLista = Array.isArray(d.graos) ? d.graos : [d.graos];
@@ -352,15 +420,26 @@ function render(d){
     sm.textContent = "cotações de " + datas[0].split("-").reverse().slice(0, 2).join("/");
     sm.className = velha ? "stale" : "";
   } else sm.textContent = "cotações · exemplo";
-  $("mercado").innerHTML = `<table class="mkt"><thead><tr><th></th>${mk.pracas.map(p => `<th class="n">${p}</th>`).join("")}</tr></thead><tbody>`
+  setHtmlSuave($("mercado"), `<table class="mkt"><thead><tr><th></th>${mk.pracas.map(p => `<th class="n">${p}</th>`).join("")}</tr></thead><tbody>`
     + mk.linhas.map(l => `<tr><td>${l.produto}<br><span class="flat">por ${l.unidade}</span></td>${l.valores.map(celula).join("")}</tr>`).join("")
-    + `</tbody></table>`;
+    + `</tbody></table>`);
 
   climaMedido = d.clima;
   desenharClima();
 
   atualizarRotulos();
   window.__avisos = d.avisos || [];
+}
+
+// Próximos embarques: todos os programados, em páginas de 4 que se alternam (como os contratos).
+let embarques = [], paginaEmb = 0;
+function desenharEmbarques(){
+  const por = CFG.embarquesPorPagina, n = Math.max(1, Math.ceil(embarques.length / por));
+  paginaEmb = paginaEmb % n;
+  const total = embarques.reduce((s, c) => s + c.cabecas, 0);
+  $("embResumo").textContent = `${embarques.length} embarques · ${fmt(total)} cab.` + (n > 1 ? ` · ${paginaEmb + 1}/${n}` : "");
+  setHtmlSuave($("bCrono"), embarques.slice(paginaEmb * por, paginaEmb * por + por)
+    .map((c, i) => `<tr style="--i:${i}"><td>${c.data}</td><td>${c.frigorifico}<br><span style="color:var(--muted);font-size:1.2vh">${c.cidade}</span></td><td>${c.fazenda}</td><td class="n">${fmt(c.cabecas)}</td></tr>`).join(""));
 }
 
 let contratos = [], paginaContratos = 0, graosLista = [], indiceGrao = 0;
@@ -370,8 +449,8 @@ function desenharGrao(){
   const saldo = g.contratadoSacas - g.entregueSacas;
   $("gProd").textContent = g.produto;
   $("gSafra").textContent = "safra " + g.safra + (graosLista.length > 1 ? ` · ${indiceGrao + 1}/${graosLista.length}` : "");
-  $("gContr").textContent = fmt(g.contratadoSacas);
-  $("gSaldo").textContent = fmt(saldo);
+  setNum("gContr", g.contratadoSacas);
+  setNum("gSaldo", saldo);
   const pct = Math.round(g.entregueSacas / g.contratadoSacas * 100);
   $("gBar").style.width = pct + "%";
   $("gPct").textContent = pct + "% entregue";
@@ -394,16 +473,16 @@ function desenharContratos(){
   const por = CFG.contratosPorPagina, total = Math.max(1, Math.ceil(contratos.length / por));
   const ini = (paginaContratos % total) * por;
   $("gPag").textContent = total > 1 ? `${(paginaContratos % total) + 1}/${total}` : "";
-  $("gContratos").innerHTML = contratos.slice(ini, ini + por).map(c => {
+  setHtmlSuave($("gContratos"), contratos.slice(ini, ini + por).map((c, i) => {
     const saldo = c.contratadoSacas - c.entregueSacas;
     const pct = Math.min(100, Math.round(c.entregueSacas / c.contratadoSacas * 100));
-    return `<div class="ctr${saldo <= 0 ? " fim" : ""}">
+    return `<div class="ctr${saldo <= 0 ? " fim" : ""}" style="--i:${i}">
       <div class="t"><b>${c.ctr} · ${c.cliente}</b><span>${c.fazenda}</span></div>
       <div class="bar"><i style="width:${pct}%"></i></div>
       <div class="m"><span>${fmt(c.entregueSacas)} de ${fmt(c.contratadoSacas)} sc (${pct}%)</span>
         <span>${saldo <= 0 ? "encerrado" : `saldo <em>${fmt(saldo)}</em> · vence ${c.vence.slice(0, 5)}`}</span></div>
     </div>`;
-  }).join("");
+  }).join(""));
 }
 
 function atualizarStatus(){
@@ -439,7 +518,6 @@ async function carregarDados(){
   if(await carregarScript("mercado.js") && window.DADOS_MERCADO) d.mercado = window.DADOS_MERCADO; else d.exemploDe.push("mercado");
   // bovinos: mescla por parte. O que o coletor ainda não lê continua de exemplo e é etiquetado.
   const bb = (bi && bi.bovinos) || {};
-  if(bb.aguardandoAbate) d.bovinos.aguardandoAbate = bb.aguardandoAbate; else d.exemploDe.push("aguardando abate");
   if(bb.mes) d.bovinos.mes = bb.mes; else d.exemploDe.push("mês bovinos");
   if(bb.cronograma) d.bovinos.cronograma = bb.cronograma; else d.exemploDe.push("embarques");
   if(bi && bi.graos)   d.graos = bi.graos;     else d.exemploDe.push("grãos");
@@ -451,7 +529,7 @@ async function carregarDados(){
 let ai = 0;
 function ticker(){
   const av = window.__avisos || [];
-  if(av.length){ $("ticker").textContent = "▸ " + av[ai % av.length]; ai++; }
+  if(av.length){ setTextoSuave($("ticker"), "▸ " + av[ai % av.length]); ai++; }
 }
 
 setInterval(() => {
@@ -464,6 +542,7 @@ setInterval(buscarModelo, CFG.previsaoMin * 60000);
 setInterval(buscarDolar, CFG.dolarMin * 60000);
 setInterval(ticker, 8000);
 setInterval(() => { paginaContratos++; desenharContratos(); }, CFG.trocaPaginaSeg * 1000);
+setInterval(() => { paginaEmb++; desenharEmbarques(); }, CFG.trocaPaginaSeg * 1000);
 setInterval(() => {
   if(graosLista.length < 2) return;
   indiceGrao = (indiceGrao + 1) % graosLista.length;
