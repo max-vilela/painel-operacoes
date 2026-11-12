@@ -21,20 +21,20 @@
     grid-template-columns:27fr 46fr 27fr}
   header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
     border:1px solid var(--line);background:var(--panel);padding:0 1.2vw;border-radius:.6vh}
-  header h1{font-size:2.4vh;letter-spacing:.25em;text-transform:uppercase;color:var(--accent)}
-  header .sub{font-size:1.4vh;color:var(--muted);letter-spacing:.12em}
-  .dolar{font-size:2.4vh;font-variant-numeric:tabular-nums;margin-left:auto;margin-right:2.5vw;white-space:nowrap}
-  .dolar .l{font-size:1.2vh;color:var(--muted);letter-spacing:.15em;margin-right:.3vw}
+  header h1{font-size:2.69vh;letter-spacing:.25em;text-transform:uppercase;color:var(--accent)}
+  header .sub{font-size:1.57vh;color:var(--muted);letter-spacing:.12em}
+  .dolar{font-size:2.69vh;font-variant-numeric:tabular-nums;margin-left:auto;margin-right:2.5vw;white-space:nowrap}
+  .dolar .l{font-size:1.34vh;color:var(--muted);letter-spacing:.15em;margin-right:.3vw}
   .dolar b{font-weight:700;color:var(--accent2)}
-  .dolar span#dolarVar{font-size:1.5vh;margin-left:.3vw}
+  .dolar span#dolarVar{font-size:1.68vh;margin-left:.3vw}
   .dolar.velho b{color:var(--warn)}
-  .clock{font-size:3.4vh;font-variant-numeric:tabular-nums;font-weight:600}
+  .clock{font-size:3.81vh;font-variant-numeric:tabular-nums;font-weight:600}
   .panel{border:1px solid var(--line);background:var(--panel);border-radius:.6vh;
     padding:1.2vh 1vw;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-  .panel h2{font-size:1.5vh;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);
+  .panel h2{font-size:1.68vh;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);
     border-bottom:1px solid var(--line);padding-bottom:.7vh;margin-bottom:1vh;
     display:flex;justify-content:space-between;align-items:center}
-  .panel h2 small{font-size:1.1vh;color:var(--muted);letter-spacing:.05em;text-transform:none}
+  .panel h2 small{font-size:1.23vh;color:var(--muted);letter-spacing:.05em;text-transform:none}
   .col{display:flex;flex-direction:column;gap:1vh;min-height:0}
   .col .panel{flex:1}
   .col.right .panel:first-child{flex:1.7}
@@ -42,24 +42,24 @@
   #bovMes .kpis{grid-template-columns:repeat(6,1fr)}
   #bovMes .kpi{grid-column:span 2}
   #bovMes .kpi.ano{grid-column:span 2}
-  #bovMes .kpi .v{font-size:3.4vh}
-  #bovMes .kpi.ano .v{font-size:3vh;color:var(--muted)}
-  #bovMes .kpi .l{font-size:1.05vh}
+  #bovMes .kpi .v{font-size:3.81vh}
+  #bovMes .kpi.ano .v{font-size:3.36vh;color:var(--muted)}
+  #bovMes .kpi .l{font-size:1.18vh}
   .col .kpi{padding:.4vh .6vw}
-  .col .kpi.big .v{font-size:3.6vh}
-  .col .kpi .v{font-size:2.5vh}
+  .col .kpi.big .v{font-size:4.03vh}
+  .col .kpi .v{font-size:2.8vh}
   .col .kpis{gap:.5vh .5vw}
   .col.right .kpi{padding:.4vh .6vw}
-  .col.right .kpi .v{font-size:2.5vh}
+  .col.right .kpi .v{font-size:2.8vh}
   .col.right .kpis{gap:.5vh .5vw}
   .col.right .sub2{margin:.5vh 0 .2vh}
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:.8vh .6vw}
   .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .8vw}
-  .kpi .l{font-size:1.2vh;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-  .kpi .v{font-size:3.2vh;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
-  .kpi .u{font-size:1.3vh;color:var(--muted)}
+  .kpi .l{font-size:1.34vh;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .kpi .v{font-size:3.58vh;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi .u{font-size:1.46vh;color:var(--muted)}
   .kpi.big{grid-column:1/-1}
-  .kpi.big .v{font-size:4.6vh;color:var(--accent2)}
+  .kpi.big .v{font-size:5.15vh;color:var(--accent2)}
   .bar{height:1.4vh;background:#0a1c14;border:1px solid var(--line);border-radius:1vh;overflow:hidden;margin:.6vh 0}
   .bar i{display:block;height:100%;background:linear-gradient(90deg,#1f8f5a,var(--accent));
     transition:width .9s cubic-bezier(.2,.7,.2,1)}
@@ -73,8 +73,8 @@
   .ctr .bar i{animation:cresce 1s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + 250ms)}
   .bars i{transform-origin:bottom;animation:sobe .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 50ms + 150ms)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-  table{width:100%;border-collapse:collapse;font-size:1.5vh}
-  th{font-size:1.2vh;color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.08em;
+  table{width:100%;border-collapse:collapse;font-size:1.68vh}
+  th{font-size:1.34vh;color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.08em;
      padding:.4vh .3vw;border-bottom:1px solid var(--line)}
   td{padding:.35vh .3vw;border-bottom:1px solid #123526;font-variant-numeric:tabular-nums}
   td.n,th.n{text-align:right}
@@ -82,8 +82,8 @@
   .map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
   #mapa{position:absolute;inset:0;background:transparent!important;pointer-events:none;z-index:5}
   .leaflet-container{background:transparent!important}
-  .leaflet-control-attribution{font-size:.9vh!important}
-  .rotulo{background:transparent;border:0;box-shadow:none;padding:0;color:#fff;font-size:1.25vh;font-weight:600;
+  .leaflet-control-attribution{font-size:1.01vh!important}
+  .rotulo{background:transparent;border:0;box-shadow:none;padding:0;color:#fff;font-size:1.4vh;font-weight:600;
     white-space:nowrap;text-shadow:0 0 2px #000,0 0 4px #000,0 0 9px #000}
   .rotulo em{font-style:normal;color:#9fdcff;font-weight:500}
   .rotulo:before{display:none}
@@ -91,32 +91,32 @@
   .farm .cab{display:flex;justify-content:space-between;align-items:baseline;gap:.3vw}
   .farm .now{display:flex;justify-content:space-between;align-items:flex-end;margin-top:.5vh}
   .ontem{display:flex;align-items:baseline;gap:.25vw}
-  .ontem .l{font-size:1.1vh;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-  .ontem .u{font-size:1.2vh;color:var(--muted)}
+  .ontem .l{font-size:1.23vh;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .ontem .u{font-size:1.34vh;color:var(--muted)}
   .acum{display:flex;flex-direction:column;align-items:flex-end;gap:.1vh}
-  .acum span{font-size:1.15vh;color:var(--muted)}
+  .acum span{font-size:1.29vh;color:var(--muted)}
   .acum i{font-style:normal;margin-right:.35vw}
-  .acum b{color:var(--text);font-size:1.4vh}
-  .farm .dado{font-size:1.1vh;color:var(--muted)}
+  .acum b{color:var(--text);font-size:1.57vh}
+  .farm .dado{font-size:1.23vh;color:var(--muted)}
   .farm .dado.velho{color:var(--warn);font-weight:700}
   .farm{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .6vw;display:flex;flex-direction:column}
-  .farm b{font-size:1.7vh}
-  .farm .now{font-size:1.3vh;color:var(--muted)}
-  .farm .now em{font-style:normal;color:var(--accent);font-size:3vh;font-weight:700;line-height:1}
+  .farm b{font-size:1.9vh}
+  .farm .now{font-size:1.46vh;color:var(--muted)}
+  .farm .now em{font-style:normal;color:var(--accent);font-size:3.36vh;font-weight:700;line-height:1}
   .bars{flex:1;display:flex;align-items:flex-end;gap:.4vw;margin-top:.6vh}
   .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
   .bars i{width:100%;background:linear-gradient(0deg,#1b6fa8,#59c3ff);border-radius:.3vh .3vh 0 0;min-height:2px}
-  .bars span{font-size:1.1vh;color:var(--muted);margin-top:.2vh}
-  .bars em{font-style:normal;font-size:1.1vh;color:var(--muted)}
+  .bars span{font-size:1.23vh;color:var(--muted);margin-top:.2vh}
+  .bars em{font-style:normal;font-size:1.23vh;color:var(--muted)}
   table.mkt td{padding:.3vh .2vw;line-height:1.25}
-  table.mkt td b{font-size:1.5vh}
-  table.mkt td span{font-size:1.15vh}
-  table.mkt th{font-size:1.05vh}
+  table.mkt td b{font-size:1.68vh}
+  table.mkt td span{font-size:1.29vh}
+  table.mkt th{font-size:1.18vh}
   .up{color:var(--accent)} .down{color:var(--bad)} .flat{color:var(--muted)}
   .tag{display:inline-block;padding:.1vh .5vw;border:1px solid var(--accent2);color:var(--accent2);
-       border-radius:1vh;font-size:1.1vh;letter-spacing:.1em}
+       border-radius:1vh;font-size:1.23vh;letter-spacing:.1em}
   footer{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
-    font-size:1.4vh;color:var(--muted);border:1px solid var(--line);background:var(--panel);
+    font-size:1.57vh;color:var(--muted);border:1px solid var(--line);background:var(--panel);
     border-radius:.6vh;padding:0 1.2vw;white-space:nowrap;overflow:hidden}
   #ticker{overflow:hidden;text-overflow:ellipsis;max-width:65%}
   .stale{color:var(--bad);font-weight:700}
@@ -124,13 +124,13 @@
   .dot{display:inline-block;width:1vh;height:1vh;border-radius:50%;background:var(--accent);margin-right:.5vw}
   .dot.stale{background:var(--bad)}
   .wide{grid-column:1/-1}
-  .sub2{display:flex;justify-content:space-between;font-size:1.2vh;color:var(--muted);
+  .sub2{display:flex;justify-content:space-between;font-size:1.34vh;color:var(--muted);
         text-transform:uppercase;letter-spacing:.1em;margin:1vh 0 .4vh;border-bottom:1px solid var(--line);padding-bottom:.3vh}
   .ctrs{flex:1;min-height:0;overflow:hidden}
   .ctr{padding:.3vh 0;border-bottom:1px solid #123526}
-  .ctr .t{display:flex;justify-content:space-between;font-size:1.5vh}
-  .ctr .t b{color:var(--text)} .ctr .t span{color:var(--muted);font-size:1.2vh}
-  .ctr .m{display:flex;justify-content:space-between;font-size:1.2vh;color:var(--muted);margin-top:.2vh}
+  .ctr .t{display:flex;justify-content:space-between;font-size:1.68vh}
+  .ctr .t b{color:var(--text)} .ctr .t span{color:var(--muted);font-size:1.34vh}
+  .ctr .m{display:flex;justify-content:space-between;font-size:1.34vh;color:var(--muted);margin-top:.2vh}
   .ctr .m em{font-style:normal;color:var(--accent2)}
   .ctr .bar{height:.9vh;margin:.3vh 0}
   .ctr.fim{opacity:.55}
@@ -181,7 +181,7 @@
         <div class="kpi"><div class="l">Saldo a entregar</div><div class="v" id="gSaldo" style="color:var(--accent2)">–</div><div class="u">sacas</div></div>
       </div>
       <div class="bar"><i id="gBar" style="width:0"></i></div>
-      <div class="u" style="font-size:1.3vh;color:var(--muted)" id="gPct"></div>
+      <div class="u" style="font-size:1.46vh;color:var(--muted)" id="gPct"></div>
       <div class="kpis" style="margin-top:.8vh">
         <div class="kpi"><div class="l">Saída hoje</div><div class="v" id="gCam">–</div></div>
         <div class="kpi"><div class="l">Última saída</div><div class="v" id="gTon">–</div></div>
@@ -220,7 +220,7 @@ const CFG = {
   relogioSeg: 1,
   contratosPorPagina: 2,   // linhas de contrato visíveis por vez na lateral de grãos
   trocaPaginaSeg: 8,       // tempo entre páginas da lista de contratos e de embarques
-  embarquesPorPagina: 7,   // linhas de embarque visíveis por vez (8 cabe no limite em 1920x1080)
+  embarquesPorPagina: 5,   // linhas de embarque visíveis por vez (com a fonte maior, 5 cabe em 1920x1080)
   trocaProdutoSeg: 24,     // tempo em cada produto (soja, milho) antes de alternar
   alertaAtrasoMin: 450, // coletor roda às 7h e 13h; passou de 7,5 h sem BI novo, fica vermelho (à noite fica, é esperado)
   radarZoom: 7,            // zoom do mapa (inteiro). 7 = todas as fazendas; 8 aproxima mais
@@ -365,7 +365,7 @@ function desenharClima(){
     const barras = prev ? prev.map((mm, i) => {
       const dia = i === 0 ? "hoje" : new Date(m.datas[i] + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"short" }).replace(".", "");
       return `<div><em>${mm}</em><i style="--i:${i};height:${Math.max(2, mm / max * 80)}%"></i><span>${dia}</span></div>`;
-    }).join("") : `<div style="color:var(--muted);font-size:1.2vh;justify-content:center">sem previsão</div>`;
+    }).join("") : `<div style="color:var(--muted);font-size:1.34vh;justify-content:center">sem previsão</div>`;
 
     // Cartão enxuto: nome, o valor principal em destaque (ontem) e os acumulados em coluna, mais as barras da previsão.
     let cab = "", principal = null, acum = [];
@@ -437,9 +437,9 @@ function desenharEmbarques(){
   const por = CFG.embarquesPorPagina, n = Math.max(1, Math.ceil(embarques.length / por));
   paginaEmb = paginaEmb % n;
   const total = embarques.reduce((s, c) => s + c.cabecas, 0);
-  $("embResumo").textContent = `${embarques.length} embarques · ${fmt(total)} cab.` + (n > 1 ? ` · ${paginaEmb + 1}/${n}` : "");
+  $("embResumo").textContent = `${embarques.length} emb. · ${fmt(total)} cab.` + (n > 1 ? ` · ${paginaEmb + 1}/${n}` : "");
   setHtmlSuave($("bCrono"), embarques.slice(paginaEmb * por, paginaEmb * por + por)
-    .map((c, i) => `<tr style="--i:${i}"><td>${c.data}</td><td>${c.frigorifico}<br><span style="color:var(--muted);font-size:1.2vh">${c.cidade}</span></td><td>${c.fazenda}</td><td class="n">${fmt(c.cabecas)}</td></tr>`).join(""));
+    .map((c, i) => `<tr style="--i:${i}"><td>${c.data}</td><td>${c.frigorifico}<br><span style="color:var(--muted);font-size:1.34vh">${c.cidade}</span></td><td>${c.fazenda}</td><td class="n">${fmt(c.cabecas)}</td></tr>`).join(""));
 }
 
 let contratos = [], paginaContratos = 0, graosLista = [], indiceGrao = 0;

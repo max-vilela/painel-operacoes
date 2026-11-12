@@ -6,3 +6,4 @@ mercado.js
 coletor/estado.json
 .claude/
 coletor/destino.txt
+__pycache__/
