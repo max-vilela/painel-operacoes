@@ -2,7 +2,7 @@
 import json
 import re
 from pathlib import Path
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 
 def frame_relatorio(page):
@@ -169,9 +169,12 @@ def bovinos_cronograma(page, esperar, hoje):
     divergentes = {d: (soma_dia.get(d, 0), t) for d, t in totais.items() if soma_dia.get(d, 0) != t}
     print("cronograma: datas conferidas", len(totais), "divergentes", divergentes)
     # Resumo do mês pela DATA DE EMBARQUE (a Visão Geral filtra por data do contrato e vem presa em setembro).
-    mes = {"embarcado": 0, "aEmbarcar": 0, "ref": hoje.strftime("%m/%Y")}
+    mes = {"embarcado": 0, "aEmbarcar": 0, "ref": hoje.strftime("%m/%Y"),
+           "anoEmbarcado": 0, "anoAEmbarcar": 0, "anoRef": hoje.year}
     for (d, _x), cab in valores.items():
         dt = datetime.strptime(d, "%d/%m/%Y").date()
+        if dt.year == hoje.year:
+            mes["anoEmbarcado" if dt < hoje else "anoAEmbarcar"] += cab
         if (dt.year, dt.month) == (hoje.year, hoje.month):
             mes["embarcado" if dt < hoje else "aEmbarcar"] += cab
     cron = []
@@ -182,7 +185,7 @@ def bovinos_cronograma(page, esperar, hoje):
             cron.append((dt, {"data": dt.strftime("%d/%m"), "frigorifico": " ".join(titulo(cli).split()[:2]), "cidade": titulo(cid),
                               "fazenda": titulo(fil), "cabecas": cab}))
     cron.sort(key=lambda t: t[0])
-    return [c for _, c in cron][:8], mes
+    return [c for _, c in cron][:40], mes
 
 
 def grupo_produto(prod):
@@ -255,15 +258,57 @@ def acompanhar_saidas(graos, hoje):
     ESTADO.write_text(json.dumps(est, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+def definir_periodo(page, ini, fim):
+    """Slicer de período como intervalo de datas (dois campos de texto dd/mm/aaaa)."""
+    fr = frame_relatorio(page)
+    campos = fr.locator(".slicer-container").nth(1).locator("input")
+    # O fim vem antes do início: o campo de início só aceita datas até o fim atual (que pode estar em setembro).
+    for campo, valor in ((campos.nth(1), fim), (campos.nth(0), ini)):
+        campo.fill(valor.strftime("%d/%m/%Y"), force=True)
+        campo.press("Enter")
+        page.wait_for_timeout(3000)
+    for campo, valor in ((campos.nth(0), ini), (campos.nth(1), fim)):
+        if campo.input_value() != valor.strftime("%d/%m/%Y"):
+            raise RuntimeError("período não aceito pelo BI: %s" % [c.input_value() for c in campos.all()])
+
+
+def bovinos_abatidos_mes(page, esperar, hoje):
+    """Página 'Abate': animais abatidos por frigorífico e data. Só a quantidade (as colunas de R$ são ignoradas).
+    O Período vem preso (ex.: só setembro): ajusta para o mês corrente e confere a soma com o cartão do BI."""
+    abrir_pagina(page, "Abate", esperar)
+    primeiro = hoje.replace(day=1)
+    ultimo = (primeiro.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+    resultado = {}
+    # O ano vem depois do mês: o fim é definido antes do início, então ampliar o período também funciona.
+    for nome, ini, fim in (("mes", primeiro, ultimo), ("ano", date(hoje.year, 1, 1), date(hoje.year, 12, 31))):
+        definir_periodo(page, ini, fim)
+        esperar(page)
+        page.wait_for_timeout(3000)
+        fr = frame_relatorio(page)
+        cartao = re.search(r"Cabeças Abatidas\s*\n\s*([\d.]+)", fr.inner_text("body"))
+        total = int(cartao.group(1).replace(".", "")) if cartao else None
+        soma, linhas = 0, []
+        # FRIGORIFICO, DATA DO ABATE, QTDE, @ PESO, PELO LIQ, R$ @, VALOR BRUTO, VL RECEBER
+        for passo in (300, 200, 120):
+            linhas = ler_tabela(page, 8, passo=passo)
+            soma = sum(int(num(l[2])) for l in linhas)
+            if total is None or soma == total:
+                break
+        resultado[nome] = (total if total is not None else soma,
+                           {"somaLinhas": soma, "cartao": total, "linhas": len(linhas)})
+    return resultado
+
+
 def coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado):
     page.goto(url_relatorio("venda_bovinos"), wait_until="domcontentloaded")
     if not esta_logado(page):
         raise SystemExit("Sem login: rode python coletor.py login")
     esperar_relatorio(page)
-    aguardando = bovinos_aguardando_abate(page, esperar_relatorio)
-    print("aguardando abate:", aguardando)
     cron, mes = bovinos_cronograma(page, esperar_relatorio, date.today())
     print("cronograma:", cron)
+    abat = bovinos_abatidos_mes(page, esperar_relatorio, date.today())
+    mes["abatidos"], mes["anoAbatidos"] = abat["mes"][0], abat["ano"][0]
+    print("abatidos mês:", abat["mes"], "| ano:", abat["ano"])
     print("mes:", mes)
     page.goto(url_relatorio("contrato_graos"), wait_until="domcontentloaded")
     if not esta_logado(page):
@@ -272,4 +317,4 @@ def coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado):
     graos = graos_contratos(page, esperar_relatorio)
     acompanhar_saidas(graos, date.today())
     print("graos:", [(g["produto"], g["safra"], g["contratadoSacas"], g["entregueSacas"], len(g["contratos"])) for g in graos])
-    return {"bovinos": {"aguardandoAbate": aguardando, "cronograma": cron, "mes": mes}, "graos": graos}
+    return {"bovinos": {"cronograma": cron, "mes": mes}, "graos": graos}

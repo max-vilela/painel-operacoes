@@ -17,6 +17,8 @@ import urllib.request
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+from destino import publicar
+
 SAIDA = Path(__file__).resolve().parent.parent / "mercado.js"
 UA = {"User-Agent": "Mozilla/5.0 (painel-operacoes; uso interno)"}
 AGROLINK = "https://www.agrolink.com.br/regional/mt/{}/cotacoes"
@@ -108,6 +110,7 @@ def main():
                      + json.dumps(out, ensure_ascii=False, indent=1) + ";\n", encoding="utf-8")
     for l in linhas:
         print(l["produto"], [(v["valor"], v["var"], v.get("data")) for v in l["valores"]])
+    publicar(SAIDA)
     if erros:
         print("ERROS:", erros)
 

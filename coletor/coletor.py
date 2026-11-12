@@ -19,6 +19,8 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
+from destino import publicar
+
 AQUI = Path(__file__).resolve().parent
 PERFIL = AQUI / "perfil"
 DUMP = AQUI / "dump"
@@ -126,6 +128,7 @@ def cmd_coletar(_):
         encoding="utf-8",
     )
     print("gravado", SAIDA)
+    publicar(SAIDA)
 
 
 def main():
