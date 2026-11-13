@@ -579,7 +579,7 @@ def filtrar_motivo(page, motivo):
     caixa = fr.locator(".slicer-container").filter(has_text="MOTIVO").first
     caixa.locator(".slicer-dropdown-menu, .slicer-restatement, .dropdown-chevron").first.click()
     page.wait_for_timeout(1500)
-    for it in fr.locator(".slicerItemContainer").all():
+    for it in fr.locator(".slicerItemContainer:visible").all():
         txt = it.inner_text().strip().upper()
         marcado = "selected" in (it.locator(".slicerCheckbox").first.get_attribute("class") or "")
         if (motivo and txt == motivo and not marcado) or (not motivo and marcado and txt != "SELECIONAR TUDO"):
@@ -643,7 +643,7 @@ def _marcado(loc):
 
 def mortes_do_mes(page, esperar, hoje):
     """Mortes e abate p/ cantina do mês corrente: PERIODO = só o mês; lê; volta PERIODO = ano inteiro.
-    Devolve {"mes": "11/2026", "total": n_sem_cantina, "cantina": n} ou None se não conseguir (e avisa)."""
+    Devolve {"mes": "11/2026", total, cantina, fazendas, motivos} (mesmo formato do ano) ou None (e avisa)."""
     ano, mes = str(hoje.year), MESES[hoje.month - 1]
     out = None
     # total do ano antes de filtrar: o do mês tem que ser menor (senão o filtro não pegou)
@@ -666,8 +666,7 @@ def mortes_do_mes(page, esperar, hoje):
         rotulo = fr.locator(".slicer-container").nth(_IDX_PERIODO).inner_text().strip()
         tot = int(num(valor_do_filtro(partes, "Total de Mortes")))
         if mes in rotulo.lower() and tot < total_ano_visto[0]:
-            cant = sum(int(num(q)) for mm, q, _ in linhas_visiveis(fr, 3) if mm.strip().upper() == CANTINA)
-            out = {"mes": f"{hoje.month:02d}/{hoje.year}", "total": tot - cant, "cantina": cant}
+            out = {"mes": f"{hoje.month:02d}/{hoje.year}", **ler_mortes(page, esperar)}
         else:
             print("  AVISO mortes do mês: o filtro não ficou só no mês; ignorado. Slicers:",
                   [fr.locator(".slicer-container").nth(k).inner_text().strip() for k in range(fr.locator(".slicer-container").count())])
@@ -696,13 +695,12 @@ def mortes_do_mes(page, esperar, hoje):
     return out
 
 
-def mortes(page, esperar):
-    """Página 'Mortes' do BI Mortes (filtro PERIODO = ano corrente).
-    Abate para cantina NÃO é morte para o painel: sai do total, dos motivos e das barras por fazenda e vira
+def ler_mortes(page, esperar):
+    """Lê a página 'Mortes' com o PERIODO que estiver aplicado: total, causas e mortes por fazenda.
+    Abate para cantina NÃO é morte para o painel: sai do total, das causas e das barras por fazenda e vira
     um número à parte. Para separar por fazenda, filtra MOTIVO = cantina, lê, e devolve o filtro para 'Todos'."""
     fr = frame_relatorio(page)
     partes = [p.strip() for p in fr.inner_text("body").split("\n") if p.strip()]
-    ano = valor_do_filtro(partes, "PERIODO")
     total = int(num(valor_do_filtro(partes, "Total de Mortes")))
     motivos_todos = [(m.strip().upper(), int(num(q))) for m, q, _ in linhas_visiveis(fr, 3)]
     cantina = sum(q for m, q in motivos_todos if m == CANTINA)
@@ -726,8 +724,16 @@ def mortes(page, esperar):
     fazendas = sorted([{"fazenda": f, "mortes": v - cant_faz.get(f, 0), "cantina": cant_faz.get(f, 0)} for f, v in geral.items()],
                       key=lambda x: -x["mortes"])
     motivos = [{"motivo": m.capitalize(), "qtd": q} for m, q in motivos_todos if m != CANTINA][:5]
-    return {"ano": ano, "total": total - cantina, "cantina": cantina, "cantinaSeparada": bool(cant_faz) or not cantina,
-            "fazendas": fazendas, "motivos": motivos, "mes": mortes_do_mes(page, esperar, date.today())}
+    return {"total": total - cantina, "cantina": cantina, "cantinaSeparada": bool(cant_faz) or not cantina,
+            "fazendas": fazendas, "motivos": motivos}
+
+
+def mortes(page, esperar):
+    """Ano (PERIODO como o BI abre = ano corrente) e mês corrente (mortes_do_mes), cada um com a leitura completa."""
+    ano = valor_do_filtro([p.strip() for p in frame_relatorio(page).inner_text("body").split("\n") if p.strip()], "PERIODO")
+    out = {"ano": ano, **ler_mortes(page, esperar)}
+    out["mes"] = mortes_do_mes(page, esperar, date.today())
+    return out
 
 
 def visao_geral(page, url_relatorio, esperar, esta_logado):

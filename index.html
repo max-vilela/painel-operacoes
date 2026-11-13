@@ -225,6 +225,21 @@
   .dois{display:grid;grid-template-columns:1fr 1fr;gap:.8vw}
   .dois .sub3{border:0;text-transform:none;letter-spacing:0;padding:0}
   .dois .grande{flex-wrap:nowrap} .dois .grande span{font-size:calc(4.2*var(--u))}
+  /* mortes: duas colunas, mês | ano */
+  .mcols{display:grid;grid-template-columns:1fr 1fr;gap:1vw;flex:1;min-height:0}
+  .mcol{background:var(--panel2);border:1px solid var(--line);border-radius:.6vh;padding:1.2vh 1vw;display:flex;flex-direction:column;gap:.9vh;min-height:0}
+  .mcol.mes{border-color:#7a3a3a}
+  .mh{font-size:calc(1.9*var(--u));font-weight:700;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center}
+  .mcol.mes .mh{color:#ff8a8a} .mcol.ano .mh{color:var(--muted)}
+  .mk{display:grid;grid-template-columns:1fr 1fr;gap:.6vw}
+  .mk div{display:flex;flex-direction:column}
+  .mk small{font-size:calc(1.35*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center}
+  .mk b{font-size:calc(4.6*var(--u));font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+  .mcol.ano .mk b{font-size:calc(3.8*var(--u))}
+  .mcol .hb.mini3{flex:none;gap:.5vh} .mcol .hb.mini3 .r{grid-template-columns:1fr 5vw 2.6vw;font-size:calc(1.6*var(--u))}
+  .mcol .hb.mfaz{flex:none}
+  .mcol .hb.mfaz{gap:.45vh} .mcol .hb.mfaz .r{grid-template-columns:7vw 1fr 2.6vw;font-size:calc(1.6*var(--u))}
+  .mcol .hb.mfaz .r .t{height:1.4vh}
   .pp{display:grid;grid-template-columns:repeat(3,1fr);gap:.6vw}
   .pp div{display:flex;flex-direction:column}
   .pp small{font-size:calc(1.35*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
@@ -317,13 +332,31 @@
       </div>
 
       <div class="slide" id="sMortes" data-titulo="Mortes de bovinos" data-ico="alerta">
-        <div class="big3" style="grid-template-columns:1fr 1fr 2fr">
-          <div class="kpi"><div class="l"><i class="ico" data-i="alerta"></i><span id="mAnoL">Mortes no ano</span></div><div class="v" id="mTotal" style="color:var(--bad)">–</div><div class="a" id="mRel"></div></div>
-          <div class="kpi"><div class="l"><i class="ico" data-i="cantina"></i><span id="mCantLbl">Cantina</span></div><div class="v" id="mCant">–</div><div class="a" id="mCantMes">abates, fora das mortes</div></div>
-          <div class="kpi"><div class="l"><i class="ico" data-i="lista"></i>Principais causas</div><div class="hb mini3" id="mMotivos"></div></div>
+        <div class="mcols">
+          <div class="mcol mes">
+            <div class="mh"><i class="ico" data-i="agenda"></i><span id="mTMes">–</span></div>
+            <div class="mk">
+              <div><small><i class="ico" data-i="alerta"></i>Mortes</small><b id="mTotMes" style="color:var(--bad)">–</b></div>
+              <div><small><i class="ico" data-i="cantina"></i>Cantina</small><b id="mCanMes">–</b></div>
+            </div>
+            <div class="sub3">principais causas</div>
+            <div class="hb mini3" id="mMotMes"></div>
+            <div class="sub3">por fazenda</div>
+            <div class="hb mfaz" id="mFazMes"></div>
+          </div>
+          <div class="mcol ano">
+            <div class="mh"><i class="ico" data-i="agenda"></i><span id="mTAno">–</span></div>
+            <div class="mk">
+              <div><small><i class="ico" data-i="alerta"></i>Mortes</small><b id="mTotAno" style="color:var(--bad)">–</b></div>
+              <div><small><i class="ico" data-i="cantina"></i>Cantina</small><b id="mCanAno">–</b></div>
+            </div>
+            <div class="sub3">principais causas</div>
+            <div class="hb mini3" id="mMotAno"></div>
+            <div class="sub3">por fazenda</div>
+            <div class="hb mfaz" id="mFazAno"></div>
+          </div>
         </div>
-        <h3><span><i class="ico" data-i="pino"></i>Por fazenda</span> <small id="mNota"></small></h3>
-        <div class="hb" id="mFaz"></div>
+        <div class="nota" id="mNota">cantina = abate para consumo, fora das mortes</div>
       </div>
 
       <div class="slide" id="sGraos" data-titulo="Grãos · contratos de venda" data-ico="trigo">
@@ -872,22 +905,25 @@ function desenharRH(h){
     partes: [{ v: f.ativos }, { v: f.ferias, cor: "var(--accent2)" }, { v: f.afastados, cor: "var(--warn)" }] })));
 }
 
-/* ---------- MORTES de bovinos no ano (BI Mortes) ---------- */
+/* ---------- MORTES de bovinos: coluna do mês corrente | coluna do ano (BI Mortes) ----------
+   Cada coluna: mortes, abate p/ cantina (à parte, nunca somado), principais causas e mortes por fazenda. */
+const NOME_MES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+function colunaMortes(s, d, titulo){
+  $("mT" + s).textContent = titulo;
+  if(!d){ setNum("mTot" + s, null); setNum("mCan" + s, null); $("mMot" + s).innerHTML = ""; $("mFaz" + s).innerHTML = ""; return; }
+  setNum("mTot" + s, d.total); setNum("mCan" + s, d.cantina);
+  barras($("mMot" + s), (d.motivos || []).map(x => ({ nome: x.motivo.split(" - ")[0], rotulo: fmt(x.qtd), partes: [{ v: x.qtd, cor: "var(--bad)" }] })));
+  // todas as fazendas, na ordem do painel; quem não teve morte no período aparece com 0
+  const por = Object.fromEntries((d.fazendas || []).map(f => [f.fazenda, f.mortes]));
+  barras($("mFaz" + s), CFG.ordemFazendas.map(n => ({ nome: n, rotulo: fmt(por[n] || 0), partes: [{ v: por[n] || 0, cor: "#ff7a7a" }] })));
+}
 function desenharMortes(m){
-  if(!m){ setNum("mTotal", null); setNum("mCant", null); return; }
-  // Número grande = mês corrente; ano embaixo. Cantina nunca entra nas mortes (o coletor já separa).
-  const nomeMes = mm => ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][+mm.slice(0, 2) - 1];
-  const mes = m.mes;   // {mes:"11/2026", total, cantina}
-  $("mAnoL").textContent = mes ? "Mortes em " + nomeMes(mes.mes) : "Mortes " + (m.ano || "");
-  setNum("mTotal", mes ? mes.total : m.total);
-  setNum("mCant", mes ? mes.cantina : m.cantina);
-  $("mRel").innerHTML = mes ? `no ano ${m.ano}: <b>${fmt(m.total)}</b>` : "";
-  $("mCantLbl").textContent = mes ? "Cantina em " + nomeMes(mes.mes) : "Cantina " + (m.ano || "");
-  $("mCantMes").innerHTML = mes ? `no ano: <b>${fmt(m.cantina)}</b> · fora das mortes` : "abates, fora das mortes";
-  barras($("mMotivos"), (m.motivos || []).map(x => ({ nome: x.motivo.split(" - ")[0], rotulo: fmt(x.qtd), partes: [{ v: x.qtd, cor: "var(--bad)" }] })));
-  barras($("mFaz"), [...(m.fazendas || [])].sort((a, b) => ordemFaz(a.fazenda) - ordemFaz(b.fazenda))
-    .map(f => ({ nome: f.fazenda, rotulo: fmt(f.mortes), partes: [{ v: f.mortes, cor: "#ff7a7a" }] })));
-  $("mNota").textContent = m.cantinaSeparada === false ? "inclui abate p/ cantina (não deu para separar)" : "sem abate p/ cantina";
+  const mes = m && m.mes;
+  colunaMortes("Mes", mes, mes ? NOME_MES[+mes.mes.slice(0, 2) - 1] + " " + mes.mes.slice(3) : "mês");
+  colunaMortes("Ano", m, m ? "ano " + (m.ano || "") : "ano");
+  const naoSeparou = (m && m.cantinaSeparada === false) || (mes && mes.cantinaSeparada === false);
+  $("mNota").textContent = naoSeparou ? "atenção: parte da cantina não deu para separar por fazenda"
+                                      : "cantina = abate para consumo, fora das mortes";
 }
 
 let ai = 0;
