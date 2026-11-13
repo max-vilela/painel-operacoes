@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel de Operações</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="fazendas.js"></script>
+<style>
+  :root{
+    --bg:#06140e; --panel:#0b2118; --panel2:#0f2b1f; --line:#1f5a3f;
+    --accent:#35d07f; --accent2:#e6c84a; --text:#e8f5ec; --muted:#8db5a0;
+    --warn:#ff9f43; --bad:#ff5d5d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--text);
+    font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden}
+  .app{display:grid;height:100vh;padding:1vh 1vw;gap:1vh 1vw;
+    grid-template-rows:5.6vh 9.5vh 1fr 19.4vh 3.6vh;
+    grid-template-columns:27fr 46fr 27fr}
+  header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
+    border:1px solid var(--line);background:var(--panel);padding:0 1.2vw;border-radius:.6vh}
+  header h1{font-size:2.69vh;letter-spacing:.25em;text-transform:uppercase;color:var(--accent)}
+  header .sub{font-size:1.57vh;color:var(--muted);letter-spacing:.12em}
+  .dolar{font-size:2.69vh;font-variant-numeric:tabular-nums;margin-left:auto;margin-right:2.5vw;white-space:nowrap}
+  .dolar .l{font-size:1.34vh;color:var(--muted);letter-spacing:.15em;margin-right:.3vw}
+  .dolar b{font-weight:700;color:var(--accent2)}
+  .dolar span#dolarVar{font-size:1.68vh;margin-left:.3vw}
+  .dolar.velho b{color:var(--warn)}
+  .clock{font-size:3.81vh;font-variant-numeric:tabular-nums;font-weight:600}
+  .panel{border:1px solid var(--line);background:var(--panel);border-radius:.6vh;
+    padding:1.2vh 1vw;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .panel h2{font-size:1.68vh;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);
+    border-bottom:1px solid var(--line);padding-bottom:.7vh;margin-bottom:1vh;
+    display:flex;justify-content:space-between;align-items:center}
+  .panel h2 small{font-size:1.23vh;color:var(--muted);letter-spacing:.05em;text-transform:none}
+  .col{display:flex;flex-direction:column;gap:1vh;min-height:0}
+  .col .panel{flex:1}
+  .col.right .panel:first-child{flex:1.4}
+  #bovMes{flex:0 0 auto}                 /* só 2 cartões: o resto da coluna fica para a lista de embarques */
+  #bovMes .kpis{grid-template-columns:repeat(6,1fr)}
+  #bovMes .kpi{grid-column:span 2}
+  #bovMes .kpi.ano{grid-column:span 2}
+  #bovMes .kpi .v{font-size:3.81vh}
+  #bovMes .kpi.ano .v{font-size:3.36vh;color:var(--muted)}
+  #bovMes .kpi .l{font-size:1.18vh}
+  .col .kpi{padding:.4vh .6vw}
+  .col .kpi.big .v{font-size:4.03vh}
+  .col .kpi .v{font-size:2.8vh}
+  .col .kpis{gap:.5vh .5vw}
+  .col.right .kpi{padding:.4vh .6vw}
+  .col.right .kpi .v{font-size:2.6vh}
+  .col.right .kpi .u{font-size:1.25vh}
+  .col.right .kpis{gap:.5vh .5vw}
+  .col.right .sub2{margin:.5vh 0 .2vh}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:.8vh .6vw}
+  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .8vw}
+  .kpi .l{font-size:1.34vh;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .kpi .v{font-size:3.58vh;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi .u{font-size:1.46vh;color:var(--muted)}
+  .kpi.big{grid-column:1/-1}
+  .kpi.big .v{font-size:5.15vh;color:var(--accent2)}
+  .bar{height:1.4vh;background:#0a1c14;border:1px solid var(--line);border-radius:1vh;overflow:hidden;margin:.6vh 0}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#1f8f5a,var(--accent));
+    transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  /* ---- transições: o que troca sai em fade e o novo entra em cascata; barras crescem; números contam ---- */
+  .suave{transition:opacity .28s ease}
+  .suave.sai{opacity:0}
+  @keyframes entra{from{opacity:0;transform:translateY(.9vh)}}
+  @keyframes cresce{from{width:0}}
+  @keyframes sobe{from{transform:scaleY(0)}}
+  .entra > *{animation:entra .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 60ms)}
+  .ctr .bar i{animation:cresce 1s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + 250ms)}
+  .bars i{transform-origin:bottom;animation:sobe .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 50ms + 150ms)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  table{width:100%;border-collapse:collapse;font-size:1.68vh}
+  th{font-size:1.34vh;color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.08em;
+     padding:.4vh .3vw;border-bottom:1px solid var(--line)}
+  td{padding:.35vh .3vw;border-bottom:1px solid #123526;font-variant-numeric:tabular-nums}
+  td.n,th.n{text-align:right}
+  .map{flex:1;position:relative;border-radius:.4vh;overflow:hidden;background:#04100a}
+  .map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  #mapa{position:absolute;inset:0;background:transparent!important;pointer-events:none;z-index:5}
+  .leaflet-container{background:transparent!important}
+  .leaflet-control-attribution{font-size:1.01vh!important}
+  .rotulo{background:transparent;border:0;box-shadow:none;padding:0;color:#fff;font-size:1.4vh;font-weight:600;
+    white-space:nowrap;text-shadow:0 0 2px #000,0 0 4px #000,0 0 9px #000}
+  .rotulo em{font-style:normal;color:#9fdcff;font-weight:500}
+  .rotulo:before{display:none}
+  .chuva{display:grid;grid-template-columns:repeat(7,1fr);gap:.5vw;flex:1;min-height:0}
+  .farm .cab{display:flex;justify-content:space-between;align-items:baseline;gap:.3vw}
+  .farm .now{display:flex;justify-content:space-between;align-items:flex-end;margin-top:.5vh}
+  .ontem{display:flex;align-items:baseline;gap:.25vw}
+  .ontem .l{font-size:1.23vh;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .ontem .u{font-size:1.34vh;color:var(--muted)}
+  .acum{display:flex;flex-direction:column;align-items:flex-end;gap:.1vh}
+  .acum span{font-size:1.29vh;color:var(--muted)}
+  .acum i{font-style:normal;margin-right:.35vw}
+  .acum b{color:var(--text);font-size:1.57vh}
+  .farm .dado{font-size:1.23vh;color:var(--muted)}
+  .farm .dado.velho{color:var(--warn);font-weight:700}
+  .farm{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .6vw;display:flex;flex-direction:column}
+  .farm b{font-size:1.9vh}
+  .farm .now{font-size:1.46vh;color:var(--muted)}
+  .farm .now em{font-style:normal;color:var(--accent);font-size:3.36vh;font-weight:700;line-height:1}
+  .bars{flex:1;display:flex;align-items:flex-end;gap:.4vw;margin-top:.6vh}
+  .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .bars i{width:100%;background:linear-gradient(0deg,#1b6fa8,#59c3ff);border-radius:.3vh .3vh 0 0;min-height:2px}
+  .bars span{font-size:1.23vh;color:var(--muted);margin-top:.2vh}
+  .bars em{font-style:normal;font-size:1.23vh;color:var(--muted)}
+  table.mkt td{padding:.3vh .2vw;line-height:1.25}
+  table.mkt td b{font-size:1.68vh}
+  table.mkt td span{font-size:1.29vh}
+  table.mkt th{font-size:1.18vh}
+  .up{color:var(--accent)} .down{color:var(--bad)} .flat{color:var(--muted)}
+  .tag{display:inline-block;padding:.1vh .5vw;border:1px solid var(--accent2);color:var(--accent2);
+       border-radius:1vh;font-size:1.23vh;letter-spacing:.1em}
+  footer{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
+    font-size:1.57vh;color:var(--muted);border:1px solid var(--line);background:var(--panel);
+    border-radius:.6vh;padding:0 1.2vw;white-space:nowrap;overflow:hidden}
+  #ticker{overflow:hidden;text-overflow:ellipsis;max-width:65%}
+  .stale{color:var(--bad);font-weight:700}
+  .ok{color:var(--accent)}
+  .dot{display:inline-block;width:1vh;height:1vh;border-radius:50%;background:var(--accent);margin-right:.5vw}
+  .dot.stale{background:var(--bad)}
+  .wide{grid-column:1/-1}
+  .sub2{display:flex;justify-content:space-between;font-size:1.34vh;color:var(--muted);
+        text-transform:uppercase;letter-spacing:.1em;margin:1vh 0 .4vh;border-bottom:1px solid var(--line);padding-bottom:.3vh}
+  .ctrs{flex:1;min-height:0;overflow:hidden}
+  .ctr{padding:.3vh 0;border-bottom:1px solid #123526}
+  .ctr .t{display:flex;justify-content:space-between;font-size:1.68vh}
+  .ctr .t b{color:var(--text)} .ctr .t span{color:var(--muted);font-size:1.34vh}
+  .ctr .m{display:flex;justify-content:space-between;font-size:1.34vh;color:var(--muted);margin-top:.2vh}
+  .ctr .m em{font-style:normal;color:var(--accent2)}
+  .ctr .bar{height:.9vh;margin:.3vh 0}
+  .ctr.fim{opacity:.55}
+  /* ---- faixa de indicadores gerais (logo abaixo do cabeçalho) ---- */
+  .faixa{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:1vw}
+  .ind{border:1px solid var(--line);background:var(--panel);border-radius:.6vh;padding:.9vh 1vw;
+    display:flex;flex-direction:column;justify-content:space-between;min-width:0;position:relative;overflow:hidden}
+  .ind:before{content:"";position:absolute;left:0;top:0;bottom:0;width:.3vw;background:var(--c,var(--accent))}
+  .ind .l{font-size:1.4vh;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;white-space:nowrap}
+  .ind .v{font-size:3.9vh;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
+  .ind .v small{font-size:1.6vh;color:var(--muted);font-weight:500;margin-left:.3vw}
+  .ind .d{font-size:1.4vh;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ind .d b{color:var(--text);font-weight:600}
+  .ind .mini{height:.8vh;background:#0a1c14;border:1px solid var(--line);border-radius:1vh;overflow:hidden;margin-top:.3vh}
+  .ind .mini i{display:block;height:100%;background:var(--c,var(--accent));transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  .ind.vazio .v{color:var(--muted)}
+  #gPainel > *:not(h2){transition:opacity .3s ease,transform .3s ease}
+  #gPainel.troca > *:not(h2){opacity:0;transform:translateY(.8vh)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div><h1>Painel de Operações</h1><div class="sub">BOVINOS · GRÃOS · ESTOQUES · PESSOAS · CLIMA · MERCADO</div></div>
+    <div id="exemploTag"></div>
+    <div class="dolar" id="dolar" title="Dólar comercial (AwesomeAPI)"><span class="l">DÓLAR</span> <b id="dolarV">--</b> <span id="dolarVar"></span></div>
+    <div class="clock" id="clock">--:--:--</div>
+  </header>
+
+  <!-- FAIXA: INDICADORES GERAIS (estoques, plantio, pessoas) -->
+  <div class="faixa" id="faixa">
+    <div class="ind vazio" id="iReb" style="--c:#e6c84a"><div class="l">Rebanho</div><div class="v">–</div><div class="d"></div></div>
+    <div class="ind vazio" id="iSoja" style="--c:#35d07f"><div class="l">Soja em estoque</div><div class="v">–</div><div class="d"></div></div>
+    <div class="ind vazio" id="iMilho" style="--c:#f2b33d"><div class="l">Milho em estoque</div><div class="v">–</div><div class="d"></div></div>
+    <div class="ind vazio" id="iPlantio" style="--c:#7fd35a"><div class="l">Plantio</div><div class="v">–</div><div class="d"></div></div>
+    <div class="ind vazio" id="iDiesel" style="--c:#59c3ff"><div class="l">Diesel em estoque</div><div class="v">–</div><div class="d"></div></div>
+    <div class="ind vazio" id="iRH" style="--c:#c79bff"><div class="l">Funcionários ativos</div><div class="v">–</div><div class="d"></div></div>
+  </div>
+
+  <!-- COLUNA ESQUERDA: BOVINOS -->
+  <div class="col">
+    <section class="panel" id="bovMes">
+      <h2>Bovinos <small id="bovAtual"></small></h2>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Embarcado (mês)</div><div class="v" id="bEmb">–</div></div>
+        <div class="kpi"><div class="l">A embarcar (mês)</div><div class="v" id="bPend">–</div></div>
+        <div class="kpi"><div class="l">Abatidos (mês)</div><div class="v" id="bAbat">–</div></div>
+        <div class="kpi ano"><div class="l">Embarcado (ano)</div><div class="v" id="bEmbAno">–</div></div>
+        <div class="kpi ano"><div class="l">A embarcar (ano)</div><div class="v" id="bPendAno">–</div></div>
+        <div class="kpi ano"><div class="l">Abatidos (ano)</div><div class="v" id="bAbatAno">–</div></div>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Próximos embarques <small id="embResumo">cabeças</small></h2>
+      <table><thead><tr><th>Data</th><th>Frigorífico</th><th>Faz.</th><th class="n">Cab.</th></tr></thead><tbody id="bCrono" class="suave entra"></tbody></table>
+    </section>
+  </div>
+
+  <!-- CENTRO: RADAR -->
+  <section class="panel">
+    <h2>Radar de chuva · fazendas <small id="radarAtual"></small></h2>
+    <div class="map"><iframe id="radar" title="Radar de chuva (Windy)"></iframe><div id="mapa"></div></div>
+  </section>
+
+  <!-- COLUNA DIREITA: GRÃOS + MERCADO -->
+  <div class="col right">
+    <section class="panel" id="gPainel">
+      <h2>Grãos · <span id="gProd">Soja</span> <small id="gSafra"></small></h2>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Contratado</div><div class="v" id="gContr">–</div><div class="u">sacas</div></div>
+        <div class="kpi"><div class="l">Saldo a entregar</div><div class="v" id="gSaldo" style="color:var(--accent2)">–</div><div class="u">sacas</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.6vw">
+        <div class="bar" style="flex:1"><i id="gBar" style="width:0"></i></div>
+        <div class="u" style="font-size:1.46vh;color:var(--muted);white-space:nowrap" id="gPct"></div>
+      </div>
+      <div class="kpis" style="margin-top:.3vh">
+        <div class="kpi"><div class="l">Saída hoje</div><div class="v" id="gCam">–</div></div>
+        <div class="kpi"><div class="l">Última saída</div><div class="v" id="gTon">–</div></div>
+      </div>
+      <div class="sub2"><span>Por contrato</span><span id="gPag"></span></div>
+      <div id="gContratos" class="ctrs suave entra"></div>
+    </section>
+    <section class="panel">
+      <h2>Mercado <small id="mercadoData">cotações · atualização diária</small></h2>
+      <div id="mercado" class="suave entra"></div>
+    </section>
+  </div>
+
+  <!-- LINHA INFERIOR: CHUVA -->
+  <section class="panel wide">
+    <h2>Chuva por fazenda <small id="chuvaNota"></small></h2>
+    <div class="chuva suave entra" id="chuva"></div>
+  </section>
+
+  <footer>
+    <div id="ticker"></div>
+    <div><span class="dot" id="dot"></span><span id="upd">sem dados</span></div>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO: intervalo de atualização de cada bloco (minutos)
+   Ajuste aqui conforme o ritmo real de cada fonte.
+   ============================================================ */
+const CFG = {
+  dadosMin: 10,        // relê data.js e bi.js (arquivos LOCAIS: custa quase nada). Quem pesa é o coletor.
+  radarMin: 10,        // recarrega o mapa de radar
+  previsaoMin: 60,     // previsão de chuva 5 dias (Open-Meteo)
+  climaAtrasoDias: 1,  // chuva medida mais velha que isso fica em laranja ("há N d")
+  relogioSeg: 1,
+  contratosPorPagina: 1,   // linhas de contrato visíveis por vez na lateral de grãos (com a faixa no topo, cabe 1)
+  trocaPaginaSeg: 8,       // tempo entre páginas da lista de contratos e de embarques
+  embarquesPorPagina: 4,   // linhas de embarque visíveis por vez (com a faixa de indicadores, 4 cabe em 1920x1080)
+  trocaProdutoSeg: 24,     // tempo em cada produto (soja, milho) antes de alternar
+  alertaAtrasoMin: 450, // coletor roda às 7h e 13h; passou de 7,5 h sem BI novo, fica vermelho (à noite fica, é esperado)
+  radarZoom: 7,            // zoom do mapa (inteiro). 7 = todas as fazendas; 8 aproxima mais
+  ordemFazendas: ["Tucano", "Java", "Ponte de Pedra", "Promissão", "Galheiro", "Panamá", "Mato Grosso"],   // ordem dos cartões de chuva
+  dolarMin: 15,       // cotação do dólar (AwesomeAPI, pública); se falhar, mantém o último valor e fica laranja
+  fonteChuva: "openmeteo"  // "openmeteo" = estimativa por modelo (sempre atual) | "dlavro" = medida do BI (atrasada)
+};
+
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString("pt-BR");
+
+/* ---- helpers de transição ---- */
+const reduzir = matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Troca o HTML só se mudou; o que estava na tela sai em fade e o novo entra em cascata (classe .entra no contêiner).
+function setHtmlSuave(el, html){
+  if(el._h === html) return;                                    // nada mudou (ex.: recarga de dados): não pisca
+  if(reduzir || el._h === undefined){ el._h = html; el.innerHTML = html; return; }
+  el.classList.add("sai");
+  setTimeout(() => { el._h = html; el.innerHTML = html; el.classList.remove("sai"); }, 280);
+}
+// Texto simples com o mesmo fade.
+function setTextoSuave(el, txt){
+  if(el.textContent === txt) return;
+  el.classList.add("suave");
+  if(reduzir){ el.textContent = txt; return; }
+  el.classList.add("sai");
+  setTimeout(() => { el.textContent = txt; el.classList.remove("sai"); }, 280);
+}
+// Número que "conta" até o novo valor (na primeira vez, de 0). Valor nulo vira traço.
+function setNum(id, v, formato = fmt){
+  const el = $(id);
+  if(v == null || isNaN(v)){ el.textContent = "–"; el._n = undefined; return; }
+  const de = el._n ?? 0; el._n = v;
+  cancelAnimationFrame(el._raf);
+  if(reduzir || de === v){ el.textContent = formato(v); return; }
+  const t0 = performance.now(), dur = 900;
+  const passo = t => {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = formato(Math.round(de + (v - de) * e));
+    if(k < 1) el._raf = requestAnimationFrame(passo);
+  };
+  el._raf = requestAnimationFrame(passo);
+}
+
+/* ---------- MAPA: radar do Windy (iframe) + contornos das fazendas desenhados por cima ---------- */
+const COR = { "Tucano":"#ffd24a","Galheiro":"#35d07f","Promissão":"#ff9f43","Nova Maringá":"#59c3ff",
+              "Java":"#c792ea","Mato Grosso":"#ff6b9a","Panamá":"#7fe0d0","Ponte de Pedra":"#f4f4a0" };
+let mapa, rotulos = {}, centroMapa = null;
+
+function centroDasFazendas(){
+  const s = (window.FAZENDAS && window.FAZENDAS.sedes) || [];
+  if(!s.length) return { lat: -14.4, lon: -56.9 };
+  const lats = s.map(x => x.lat), lons = s.map(x => x.lon);
+  return { lat: (Math.min(...lats) + Math.max(...lats)) / 2, lon: (Math.min(...lons) + Math.max(...lons)) / 2 };
+}
+
+function iniciarMapa(){
+  if(mapa || typeof L === "undefined") return;
+  centroMapa = centroDasFazendas();
+  // Este Leaflet é transparente e fica sobre o Windy: só desenha as fazendas, com o MESMO
+  // centro e zoom do Windy para os dois ficarem alinhados.
+  mapa = L.map("mapa", { zoomControl:false, attributionControl:false, dragging:false, scrollWheelZoom:false,
+    doubleClickZoom:false, boxZoom:false, keyboard:false, touchZoom:false, zoomSnap:1, preferCanvas:true })
+    .setView([centroMapa.lat, centroMapa.lon], CFG.radarZoom, { animate:false });
+  const F = window.FAZENDAS; if(!F) return;
+  L.geoJSON(F.talhoes, {
+    style: f => { const c = COR[f.properties.fazenda] || "#fff"; return { color:c, fillColor:c, weight:1, opacity:.85, fillOpacity:.35 }; }
+  }).addTo(mapa);
+  // Um ponto por sede + nome em texto simples. O lado do nome é escolhido para as fazendas
+  // vizinhas (Java, Tucano, Ponte de Pedra) não se sobreporem.
+  const LADO = { "Java":["left",[-6,0]], "Tucano":["top",[0,-6]], "Ponte de Pedra":["right",[6,0]],
+                 "Promissão":["bottom",[0,6]], "Panamá":["top",[0,-6]], "Mato Grosso":["bottom",[0,6]],
+                 "Galheiro":["right",[6,0]] };
+  F.sedes.forEach(s => {
+    const [direction, offset] = LADO[s.fazenda] || ["top", [0, -6]];
+    rotulos[s.fazenda] = L.circleMarker([s.lat, s.lon], { radius:3, weight:1.5, color:"#fff", fillColor:COR[s.fazenda] || "#fff", fillOpacity:1 })
+      .bindTooltip(s.fazenda, { permanent:true, direction, offset, className:"rotulo" }).addTo(mapa);
+  });
+}
+
+function atualizarRotulos(){
+  Object.entries(rotulos).forEach(([nome, m]) => {
+    let txt = nome;
+    if(CFG.fonteChuva === "openmeteo" && modelo[nome]) txt = `${nome} <em>${modelo[nome].ontem} mm</em>`;
+    else { const c = climaMedido.find(x => x.fazenda === nome); if(c) txt = `${nome} <em>${c.chuvaDia} mm</em>`; }
+    m.setTooltipContent(txt);
+  });
+}
+
+function renderRadar(){
+  iniciarMapa();
+  const c = centroMapa || centroDasFazendas();
+  $("radar").src = `https://embed.windy.com/embed2.html?lat=${c.lat.toFixed(4)}&lon=${c.lon.toFixed(4)}&zoom=${CFG.radarZoom}`
+    + `&level=surface&overlay=radar&menu=&message=&marker=&calendar=now&type=map&location=coordinates&detail=`
+    + `&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1&t=${Date.now()}`;
+  $("radarAtual").textContent = "Windy · recarregado " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+}
+
+/* ---------- CHUVA: estimativa por modelo (Open-Meteo) ou medida do D-Lavro (via data.js) ---------- */
+let climaMedido = [], modelo = {};
+const fmtDia = iso => iso.slice(8, 10) + "/" + iso.slice(5, 7);
+const soma = a => Math.round(a.reduce((s, v) => s + (v || 0), 0));
+
+async function buscarDolar(){
+  try{
+    const r = await fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL", {cache:"no-store"});
+    const q = (await r.json()).USDBRL;
+    const v = parseFloat(q.bid), p = parseFloat(q.pctChange);
+    $("dolarV").textContent = "R$ " + v.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2});
+    $("dolarVar").className = p > 0 ? "up" : p < 0 ? "down" : "flat";
+    $("dolarVar").textContent = (p > 0 ? "▲ " : p < 0 ? "▼ " : "") + Math.abs(p).toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
+    $("dolar").classList.remove("velho");
+    $("dolar").title = "Dólar comercial, atualizado em " + q.create_date + " (AwesomeAPI)";
+  }catch(e){ $("dolar").classList.add("velho"); }   // sem internet: mantém o último valor, em laranja
+}
+
+async function buscarModelo(){
+  const sedes = (window.FAZENDAS && window.FAZENDAS.sedes) || [];
+  if(!sedes.length) return;
+  try{
+    const url = "https://api.open-meteo.com/v1/forecast?daily=precipitation_sum&past_days=30&forecast_days=5&timezone=America%2FCuiaba"
+      + "&latitude=" + sedes.map(s => s.lat).join(",") + "&longitude=" + sedes.map(s => s.lon).join(",");
+    let j = await (await fetch(url)).json();
+    if(!Array.isArray(j)) j = [j];
+    j.forEach((r, i) => {
+      const v = r.daily.precipitation_sum, t = r.daily.time, h = v.length - 5;   // h = índice de hoje
+      modelo[sedes[i].fazenda] = { ontem: Math.round(v[h - 1]), d7: soma(v.slice(h - 7, h)), d30: soma(v.slice(h - 30, h)),
+                                   prev: v.slice(h).map(x => Math.round(x)), datas: t.slice(h) };
+    });
+    desenharClima(); atualizarRotulos();
+  }catch(e){ /* mantém o último resultado; se nunca houve, o cartão mostra "sem dados" */ }
+}
+
+function desenharClima(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const usaModelo = CFG.fonteChuva === "openmeteo";
+  const ordem = nome => { const i = CFG.ordemFazendas.indexOf(nome); return i < 0 ? 99 : i; };   // fora da lista vai para o fim
+  const fazendas = (usaModelo ? Object.keys(modelo) : climaMedido.map(c => c.fazenda)).sort((a, b) => ordem(a) - ordem(b));
+  setHtmlSuave($("chuva"), fazendas.map((nome, k) => {
+    const m = modelo[nome];
+    const prev = m && m.prev, max = prev ? Math.max(10, ...prev) : 10;
+    const barras = prev ? prev.map((mm, i) => {
+      const dia = i === 0 ? "hoje" : new Date(m.datas[i] + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"short" }).replace(".", "");
+      return `<div><em>${mm}</em><i style="--i:${i};height:${Math.max(2, mm / max * 80)}%"></i><span>${dia}</span></div>`;
+    }).join("") : `<div style="color:var(--muted);font-size:1.34vh;justify-content:center">sem previsão</div>`;
+
+    // Cartão enxuto: nome, o valor principal em destaque (ontem) e os acumulados em coluna, mais as barras da previsão.
+    let cab = "", principal = null, acum = [];
+    if(usaModelo){
+      if(m){ principal = ["ontem", m.ontem]; acum = [["7 d", m.d7], ["30 d", m.d30]]; }
+    } else {
+      const f = climaMedido.find(c => c.fazenda === nome);
+      const idade = Math.round((hoje - new Date(f.dado + "T00:00:00")) / 86400000), velho = idade > CFG.climaAtrasoDias;
+      cab = `<span class="dado ${velho ? "velho" : ""}">${fmtDia(f.dado)}${idade > 0 ? ` · há ${idade} d` : " · hoje"}</span>`;
+      principal = ["no dia", f.chuvaDia]; acum = [["7 d", f.chuva7d], ["mês", f.chuvaMes], ["ano", f.chuvaAno]];
+    }
+    const now = principal
+      ? `<div class="ontem"><span class="l">${principal[0]}</span><em>${principal[1]}</em><span class="u">mm</span></div>`
+        + `<div class="acum">${acum.map(([r, v]) => `<span><i>${r}</i><b>${v}</b></span>`).join("")}</div>`
+      : `<div class="ontem"><span class="l">sem dados</span></div>`;
+    return `<div class="farm" style="--i:${k}"><div class="cab"><b>${nome}</b>${cab}</div><div class="now">${now}</div><div class="bars">${barras}</div></div>`;
+  }).join(""));
+  $("chuvaNota").textContent = usaModelo ? "estimativa Open-Meteo · mm · próximos 5 dias" : "medido (D-Lavro) · mm";
+}
+
+function render(d){
+  $("exemploTag").innerHTML = d.exemploDe && d.exemploDe.length
+    ? '<span class="tag">EXEMPLO: ' + d.exemploDe.join(" · ") + '</span>' : "";
+
+  const b = d.bovinos;
+  // setNum: o número conta até o valor novo; dado que o coletor não trouxe aparece como traço.
+  setNum("bEmb", b.mes.embarcado);
+  setNum("bPend", b.mes.aEmbarcar ?? b.mes.pendenteEmbarque);
+  setNum("bAbat", b.mes.abatidos);
+  setNum("bEmbAno", b.mes.anoEmbarcado);
+  setNum("bPendAno", b.mes.anoAEmbarcar);
+  setNum("bAbatAno", b.mes.anoAbatidos);
+  embarques = b.cronograma;
+  desenharEmbarques();
+
+  // d.graos pode ser um produto só ou uma lista (soja, milho...). A tela alterna entre eles.
+  graosLista = Array.isArray(d.graos) ? d.graos : [d.graos];
+  if(indiceGrao >= graosLista.length) indiceGrao = 0;
+  desenharGrao();
+
+  const mk = d.mercado;
+  const celula = c => {
+    const cls = c.var > 0 ? "up" : c.var < 0 ? "down" : "flat";
+    const seta = c.var > 0 ? "▲" : c.var < 0 ? "▼" : "■";
+    return `<td class="n"><b>R$ ${c.valor}</b><br><span class="${cls}">${seta} ${Math.abs(c.var).toFixed(1)}%</span></td>`;
+  };
+  // Data da cotação no título; em laranja se a mais antiga tiver mais de 3 dias (fim de semana é normal).
+  const datas = mk.linhas.flatMap(l => l.valores.map(v => v.data)).filter(Boolean).sort();
+  const sm = $("mercadoData");
+  if(datas.length){
+    const velha = (Date.now() - new Date(datas[0] + "T12:00:00")) / 86400000 > 3;
+    sm.textContent = "cotações de " + datas[0].split("-").reverse().slice(0, 2).join("/");
+    sm.className = velha ? "stale" : "";
+  } else sm.textContent = "cotações · exemplo";
+  setHtmlSuave($("mercado"), `<table class="mkt"><thead><tr><th></th>${mk.pracas.map(p => `<th class="n">${p}</th>`).join("")}</tr></thead><tbody>`
+    + mk.linhas.map(l => `<tr><td>${l.produto}<br><span class="flat">por ${l.unidade}</span></td>${l.valores.map(celula).join("")}</tr>`).join("")
+    + `</tbody></table>`);
+
+  climaMedido = d.clima;
+  desenharClima();
+
+  atualizarRotulos();
+  window.__avisos = d.avisos || [];
+}
+
+// Próximos embarques: todos os programados, em páginas de 4 que se alternam (como os contratos).
+let embarques = [], paginaEmb = 0;
+function desenharEmbarques(){
+  const por = CFG.embarquesPorPagina, n = Math.max(1, Math.ceil(embarques.length / por));
+  paginaEmb = paginaEmb % n;
+  const total = embarques.reduce((s, c) => s + c.cabecas, 0);
+  $("embResumo").textContent = `${embarques.length} emb. · ${fmt(total)} cab.` + (n > 1 ? ` · ${paginaEmb + 1}/${n}` : "");
+  setHtmlSuave($("bCrono"), embarques.slice(paginaEmb * por, paginaEmb * por + por)
+    .map((c, i) => `<tr style="--i:${i}"><td>${c.data}</td><td>${c.frigorifico}<br><span style="color:var(--muted);font-size:1.34vh">${c.cidade}</span></td><td>${c.fazenda}</td><td class="n">${fmt(c.cabecas)}</td></tr>`).join(""));
+}
+
+let contratos = [], paginaContratos = 0, graosLista = [], indiceGrao = 0;
+
+function desenharGrao(){
+  const g = graosLista[indiceGrao]; if(!g) return;
+  const saldo = g.contratadoSacas - g.entregueSacas;
+  $("gProd").textContent = g.produto;
+  $("gSafra").textContent = "safra " + g.safra + (graosLista.length > 1 ? ` · ${indiceGrao + 1}/${graosLista.length}` : "");
+  setNum("gContr", g.contratadoSacas);
+  setNum("gSaldo", saldo);
+  const pct = Math.round(g.entregueSacas / g.contratadoSacas * 100);
+  $("gBar").style.width = pct + "%";
+  $("gPct").textContent = pct + "% entregue";
+  // Saída = aumento do total entregue entre coletas (coletor/estado.json). Sem registro de saída: "sem saída".
+  const sd = g.saida;
+  $("gCam").textContent = sd ? fmt(sd.hojeSacas) + " sc" : "–";
+  const dm = iso => iso.split("-").reverse().slice(0, 2).join("/");
+  $("gTon").textContent = !sd ? "–" : sd.ultima ? dm(sd.ultima) : "sem saída";
+  $("gTon").title = sd ? "Acompanhando desde " + dm(sd.desde) : "";
+  // Contratos com saldo primeiro (vencimento mais próximo), encerrados por último
+  const venc = s => s.split("/").reverse().join("");   // "dd/mm/aaaa" -> "aaaammdd"
+  contratos = [...g.contratos].sort((a, b) => {
+    const fa = a.contratadoSacas - a.entregueSacas <= 0, fb = b.contratadoSacas - b.entregueSacas <= 0;
+    return fa - fb || venc(a.vence).localeCompare(venc(b.vence));
+  });
+  paginaContratos = 0;
+  desenharContratos();
+}
+function desenharContratos(){
+  const por = CFG.contratosPorPagina, total = Math.max(1, Math.ceil(contratos.length / por));
+  const ini = (paginaContratos % total) * por;
+  $("gPag").textContent = total > 1 ? `${(paginaContratos % total) + 1}/${total}` : "";
+  setHtmlSuave($("gContratos"), contratos.slice(ini, ini + por).map((c, i) => {
+    const saldo = c.contratadoSacas - c.entregueSacas;
+    const pct = Math.min(100, Math.round(c.entregueSacas / c.contratadoSacas * 100));
+    return `<div class="ctr${saldo <= 0 ? " fim" : ""}" style="--i:${i}">
+      <div class="t"><b>${c.ctr} · ${c.cliente}</b><span>${c.fazenda}</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="m"><span>${fmt(c.entregueSacas)} de ${fmt(c.contratadoSacas)} sc (${pct}%)</span>
+        <span>${saldo <= 0 ? "encerrado" : `saldo <em>${fmt(saldo)}</em> · vence ${c.vence.slice(0, 5)}`}</span></div>
+    </div>`;
+  }).join(""));
+}
+
+function atualizarStatus(){
+  const d = window.DADOS; if(!d) return;
+  const idade = (Date.now() - new Date(d.atualizadoEm).getTime()) / 60000;
+  const stale = idade > CFG.alertaAtrasoMin;
+  $("dot").className = "dot" + (stale ? " stale" : "");
+  $("upd").className = stale ? "stale" : "ok";
+  $("upd").textContent = (d.deBi ? "BI de " : "dados de ") + new Date(d.atualizadoEm).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
+    + (stale ? " · DESATUALIZADO" : "");
+}
+
+function carregarScript(src){
+  return new Promise(ok => {
+    const s = document.createElement("script");
+    s.src = src + "?t=" + Date.now();
+    s.onload = () => { s.remove(); ok(true); };
+    s.onerror = () => { s.remove(); ok(false); };
+    document.head.appendChild(s);
+  });
+}
+
+/* data.js = base (mercado, clima, exemplos). bi.js = gerado pelo coletor a partir dos BIs
+   (bovinos e grãos). Se bi.js não existir, ou faltar um bloco, esse bloco fica como EXEMPLO. */
+async function carregarDados(){
+  window.DADOS_BI = undefined;
+  if(!await carregarScript("data.js")){ atualizarStatus(); return; }   // mantém o último valor na tela
+  const bi = (await carregarScript("bi.js")) ? window.DADOS_BI : null;
+  const d = window.DADOS;
+  d.exemploDe = [];
+  // mercado.js: gerado por coletor/cotacoes.py (fontes públicas, sem login). Sem ele, fica o EXEMPLO de data.js.
+  window.DADOS_MERCADO = undefined;
+  if(await carregarScript("mercado.js") && window.DADOS_MERCADO) d.mercado = window.DADOS_MERCADO; else d.exemploDe.push("mercado");
+  // bovinos: mescla por parte. O que o coletor ainda não lê continua de exemplo e é etiquetado.
+  const bb = (bi && bi.bovinos) || {};
+  if(bb.mes) d.bovinos.mes = bb.mes; else d.exemploDe.push("mês bovinos");
+  if(bb.cronograma) d.bovinos.cronograma = bb.cronograma; else d.exemploDe.push("embarques");
+  if(bi && bi.graos)   d.graos = bi.graos;     else d.exemploDe.push("grãos");
+  if(bi) d.atualizadoEm = bi.atualizadoEm;
+  d.deBi = !!bi;
+  render(d); desenharFaixa(bi && bi.visao); atualizarStatus();
+}
+
+/* ---------- FAIXA de indicadores gerais (bi.visao, gerado pelo coletor) ----------
+   Cada cartão: valor grande + uma linha de detalhe. Sem dado, fica traço (nunca exemplo). */
+function cartao(id, valor, unidade, detalhe, pct, formato = fmt){
+  const el = $(id); if(!el) return;
+  const v = el.querySelector(".v"), d = el.querySelector(".d");
+  el.classList.toggle("vazio", valor == null);
+  if(valor == null){ v.textContent = "–"; d.innerHTML = ""; return; }
+  if(!v._num){ v.innerHTML = `<span id="${id}N"></span><small></small>`; v._num = true; }
+  v.querySelector("small").textContent = unidade || "";
+  setNum(id + "N", valor, formato);
+  let html = detalhe || "";
+  if(pct != null) html += `<div class="mini"><i style="width:${Math.min(100, pct)}%"></i></div>`;
+  if(d._h !== html){ d._h = html; d.innerHTML = html; }
+}
+function desenharFaixa(v){
+  v = v || {};
+  const r = v.rebanho;
+  cartao("iReb", r && r.total, "cab.",
+    r ? (r.confinamento != null ? `confinamento <b>${fmt(r.confinamento)}</b> · pasto <b>${fmt(r.total - r.confinamento)}</b>` : "") : "");
+  for(const [id, chave] of [["iSoja", "soja"], ["iMilho", "milho"]]){
+    const e = v.estoqueGraos && v.estoqueGraos[chave];
+    const det = e ? e.porSafra.slice(0, 2).map(s => `${s.safra} <b>${fmt(s.sacas)}</b>`).join(" · ") : "";
+    cartao(id, e && e.sacas, "sc", det);
+  }
+  const p = v.plantio;
+  if(p && p.planejadoHa){
+    const pct = Math.min(100, Math.round(p.plantadoHa / p.planejadoHa * 100));
+    $("iPlantio").querySelector(".l").textContent = "Plantio · " + p.safra.toLowerCase();
+    cartao("iPlantio", pct, "%", `<b>${fmt(Math.round(p.plantadoHa))}</b> de ${fmt(Math.round(p.planejadoHa))} ha`, pct);
+  } else cartao("iPlantio", null);
+  const c = v.combustivel;
+  cartao("iDiesel", c && c.diesel, "L", c && c.gasolina != null ? `gasolina <b>${fmt(c.gasolina)}</b> L · etanol <b>${fmt(c.etanol || 0)}</b> L` : "");
+  const h = v.rh;
+  cartao("iRH", h && h.ativos, "", h ? `férias <b>${fmt(h.ferias)}</b> · afastados <b>${fmt(h.afastados)}</b> · total <b>${fmt(h.total)}</b>` : "");
+}
+
+let ai = 0;
+function ticker(){
+  const av = window.__avisos || [];
+  if(av.length){ setTextoSuave($("ticker"), "▸ " + av[ai % av.length]); ai++; }
+}
+
+setInterval(() => {
+  $("clock").textContent = new Date().toLocaleTimeString("pt-BR");
+  atualizarStatus();
+}, CFG.relogioSeg * 1000);
+setInterval(carregarDados, CFG.dadosMin * 60000);
+setInterval(renderRadar, CFG.radarMin * 60000);
+setInterval(buscarModelo, CFG.previsaoMin * 60000);
+setInterval(buscarDolar, CFG.dolarMin * 60000);
+setInterval(ticker, 8000);
+setInterval(() => { paginaContratos++; desenharContratos(); }, CFG.trocaPaginaSeg * 1000);
+setInterval(() => { paginaEmb++; desenharEmbarques(); }, CFG.trocaPaginaSeg * 1000);
+setInterval(() => {
+  if(graosLista.length < 2) return;
+  indiceGrao = (indiceGrao + 1) % graosLista.length;
+  const p = $("gPainel"); p.classList.add("troca");
+  setTimeout(() => { desenharGrao(); p.classList.remove("troca"); }, 350);
+}, CFG.trocaProdutoSeg * 1000);
+
+renderRadar();
+buscarModelo();
+buscarDolar();
+carregarDados();
+setTimeout(ticker, 500);
+</script>
+</body>
+</html>

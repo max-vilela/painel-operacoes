@@ -9,6 +9,7 @@
 <script src="fazendas.js"></script>
 <style>
   :root{
+    --u:min(1vh,.5625vw);   /* unidade das fontes: 1vh numa tela 16:9; encolhe se a janela for mais estreita */
     --bg:#06140e; --panel:#0b2118; --panel2:#0f2b1f; --line:#1f5a3f;
     --accent:#35d07f; --accent2:#e6c84a; --text:#e8f5ec; --muted:#8db5a0;
     --warn:#ff9f43; --bad:#ff5d5d;
@@ -17,49 +18,50 @@
   html,body{height:100%;background:var(--bg);color:var(--text);
     font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden}
   .app{display:grid;height:100vh;padding:1vh 1vw;gap:1vh 1vw;
-    grid-template-rows:6vh 1fr 22vh 3.6vh;
-    grid-template-columns:27fr 46fr 27fr}
+    grid-template-rows:6vh 1fr 13vh 3.6vh;
+    grid-template-columns:54fr 46fr}
   header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
     border:1px solid var(--line);background:var(--panel);padding:0 1.2vw;border-radius:.6vh}
-  header h1{font-size:2.69vh;letter-spacing:.25em;text-transform:uppercase;color:var(--accent)}
-  header .sub{font-size:1.57vh;color:var(--muted);letter-spacing:.12em}
-  .dolar{font-size:2.69vh;font-variant-numeric:tabular-nums;margin-left:auto;margin-right:2.5vw;white-space:nowrap}
-  .dolar .l{font-size:1.34vh;color:var(--muted);letter-spacing:.15em;margin-right:.3vw}
+  header h1{font-size:calc(2.69*var(--u));letter-spacing:.25em;text-transform:uppercase;color:var(--accent)}
+  header .sub{font-size:calc(1.57*var(--u));color:var(--muted);letter-spacing:.12em}
+  .dolar{font-size:calc(2.69*var(--u));font-variant-numeric:tabular-nums;margin-left:auto;margin-right:2.5vw;white-space:nowrap}
+  .dolar .l{font-size:calc(1.34*var(--u));color:var(--muted);letter-spacing:.15em;margin-right:.3vw}
   .dolar b{font-weight:700;color:var(--accent2)}
-  .dolar span#dolarVar{font-size:1.68vh;margin-left:.3vw}
+  .dolar span#dolarVar{font-size:calc(1.68*var(--u));margin-left:.3vw}
   .dolar.velho b{color:var(--warn)}
-  .clock{font-size:3.81vh;font-variant-numeric:tabular-nums;font-weight:600}
+  .clock{font-size:calc(3.81*var(--u));font-variant-numeric:tabular-nums;font-weight:600}
   .panel{border:1px solid var(--line);background:var(--panel);border-radius:.6vh;
     padding:1.2vh 1vw;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-  .panel h2{font-size:1.68vh;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);
+  .panel h2{font-size:calc(1.68*var(--u));letter-spacing:.2em;text-transform:uppercase;color:var(--accent);
     border-bottom:1px solid var(--line);padding-bottom:.7vh;margin-bottom:1vh;
     display:flex;justify-content:space-between;align-items:center}
-  .panel h2 small{font-size:1.23vh;color:var(--muted);letter-spacing:.05em;text-transform:none}
+  .panel h2 small{font-size:calc(1.23*var(--u));color:var(--muted);letter-spacing:.05em;text-transform:none}
   .col{display:flex;flex-direction:column;gap:1vh;min-height:0}
   .col .panel{flex:1}
-  .col.right .panel:first-child{flex:1.7}
+  .col.right .panel:first-child{flex:1.4}
   #bovMes{flex:0 0 auto}                 /* só 2 cartões: o resto da coluna fica para a lista de embarques */
   #bovMes .kpis{grid-template-columns:repeat(6,1fr)}
   #bovMes .kpi{grid-column:span 2}
   #bovMes .kpi.ano{grid-column:span 2}
-  #bovMes .kpi .v{font-size:3.81vh}
-  #bovMes .kpi.ano .v{font-size:3.36vh;color:var(--muted)}
-  #bovMes .kpi .l{font-size:1.18vh}
+  #bovMes .kpi .v{font-size:calc(3.81*var(--u))}
+  #bovMes .kpi.ano .v{font-size:calc(3.36*var(--u));color:var(--muted)}
+  #bovMes .kpi .l{font-size:calc(1.18*var(--u))}
   .col .kpi{padding:.4vh .6vw}
-  .col .kpi.big .v{font-size:4.03vh}
-  .col .kpi .v{font-size:2.8vh}
+  .col .kpi.big .v{font-size:calc(4.03*var(--u))}
+  .col .kpi .v{font-size:calc(2.8*var(--u))}
   .col .kpis{gap:.5vh .5vw}
   .col.right .kpi{padding:.4vh .6vw}
-  .col.right .kpi .v{font-size:2.8vh}
+  .col.right .kpi .v{font-size:calc(2.6*var(--u))}
+  .col.right .kpi .u{font-size:calc(1.25*var(--u))}
   .col.right .kpis{gap:.5vh .5vw}
   .col.right .sub2{margin:.5vh 0 .2vh}
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:.8vh .6vw}
   .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .8vw}
-  .kpi .l{font-size:1.34vh;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-  .kpi .v{font-size:3.58vh;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
-  .kpi .u{font-size:1.46vh;color:var(--muted)}
+  .kpi .l{font-size:calc(1.34*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .kpi .v{font-size:calc(3.58*var(--u));font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi .u{font-size:calc(1.46*var(--u));color:var(--muted)}
   .kpi.big{grid-column:1/-1}
-  .kpi.big .v{font-size:5.15vh;color:var(--accent2)}
+  .kpi.big .v{font-size:calc(5.15*var(--u));color:var(--accent2)}
   .bar{height:1.4vh;background:#0a1c14;border:1px solid var(--line);border-radius:1vh;overflow:hidden;margin:.6vh 0}
   .bar i{display:block;height:100%;background:linear-gradient(90deg,#1f8f5a,var(--accent));
     transition:width .9s cubic-bezier(.2,.7,.2,1)}
@@ -73,50 +75,54 @@
   .ctr .bar i{animation:cresce 1s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + 250ms)}
   .bars i{transform-origin:bottom;animation:sobe .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 50ms + 150ms)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-  table{width:100%;border-collapse:collapse;font-size:1.68vh}
-  th{font-size:1.34vh;color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.08em;
+  table{width:100%;border-collapse:collapse;font-size:calc(1.68*var(--u))}
+  th{font-size:calc(1.34*var(--u));color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.08em;
      padding:.4vh .3vw;border-bottom:1px solid var(--line)}
   td{padding:.35vh .3vw;border-bottom:1px solid #123526;font-variant-numeric:tabular-nums}
   td.n,th.n{text-align:right}
   .map{flex:1;position:relative;border-radius:.4vh;overflow:hidden;background:#04100a}
   .map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
   #mapa{position:absolute;inset:0;background:transparent!important;pointer-events:none;z-index:5}
+  /* fazendas somem e voltam devagar para dar para ver as nuvens do radar por baixo.
+     Ciclo de 16 s: ~8 s visíveis, ~1,5 s sumindo, ~5 s quase transparentes, ~1,5 s voltando. */
+  @keyframes fazPisca{0%,50%{opacity:1} 60%,90%{opacity:.07} 100%{opacity:1}}
+  #mapa .leaflet-overlay-pane,#mapa .leaflet-marker-pane,#mapa .leaflet-tooltip-pane{animation:fazPisca 16s ease-in-out infinite}
   .leaflet-container{background:transparent!important}
-  .leaflet-control-attribution{font-size:1.01vh!important}
-  .rotulo{background:transparent;border:0;box-shadow:none;padding:0;color:#fff;font-size:1.4vh;font-weight:600;
-    white-space:nowrap;text-shadow:0 0 2px #000,0 0 4px #000,0 0 9px #000}
-  .rotulo em{font-style:normal;color:#9fdcff;font-weight:500}
+  .leaflet-control-attribution{font-size:calc(1.01*var(--u))!important}
+  .rotulo{background:rgba(4,16,10,.82);border:0;border-left:.35vw solid var(--c,#fff);box-shadow:0 .2vh .8vh rgba(0,0,0,.6);
+    padding:.35vh .55vw;border-radius:.4vh;color:#fff;font-size:calc(1.85*var(--u));font-weight:700;white-space:nowrap}
+  .rotulo em{font-style:normal;color:#9fdcff;font-weight:600;margin-left:.3vw}
   .rotulo:before{display:none}
   .chuva{display:grid;grid-template-columns:repeat(7,1fr);gap:.5vw;flex:1;min-height:0}
   .farm .cab{display:flex;justify-content:space-between;align-items:baseline;gap:.3vw}
   .farm .now{display:flex;justify-content:space-between;align-items:flex-end;margin-top:.5vh}
   .ontem{display:flex;align-items:baseline;gap:.25vw}
-  .ontem .l{font-size:1.23vh;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-  .ontem .u{font-size:1.34vh;color:var(--muted)}
+  .ontem .l{font-size:calc(1.23*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .ontem .u{font-size:calc(1.34*var(--u));color:var(--muted)}
   .acum{display:flex;flex-direction:column;align-items:flex-end;gap:.1vh}
-  .acum span{font-size:1.29vh;color:var(--muted)}
+  .acum span{font-size:calc(1.29*var(--u));color:var(--muted)}
   .acum i{font-style:normal;margin-right:.35vw}
-  .acum b{color:var(--text);font-size:1.57vh}
-  .farm .dado{font-size:1.23vh;color:var(--muted)}
+  .acum b{color:var(--text);font-size:calc(1.57*var(--u))}
+  .farm .dado{font-size:calc(1.23*var(--u));color:var(--muted)}
   .farm .dado.velho{color:var(--warn);font-weight:700}
   .farm{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .6vw;display:flex;flex-direction:column}
-  .farm b{font-size:1.9vh}
-  .farm .now{font-size:1.46vh;color:var(--muted)}
-  .farm .now em{font-style:normal;color:var(--accent);font-size:3.36vh;font-weight:700;line-height:1}
+  .farm b{font-size:calc(1.9*var(--u))}
+  .farm .now{font-size:calc(1.46*var(--u));color:var(--muted)}
+  .farm .now em{font-style:normal;color:var(--accent);font-size:calc(3.36*var(--u));font-weight:700;line-height:1}
   .bars{flex:1;display:flex;align-items:flex-end;gap:.4vw;margin-top:.6vh}
   .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
   .bars i{width:100%;background:linear-gradient(0deg,#1b6fa8,#59c3ff);border-radius:.3vh .3vh 0 0;min-height:2px}
-  .bars span{font-size:1.23vh;color:var(--muted);margin-top:.2vh}
-  .bars em{font-style:normal;font-size:1.23vh;color:var(--muted)}
+  .bars span{font-size:calc(1.23*var(--u));color:var(--muted);margin-top:.2vh}
+  .bars em{font-style:normal;font-size:calc(1.23*var(--u));color:var(--muted)}
   table.mkt td{padding:.3vh .2vw;line-height:1.25}
-  table.mkt td b{font-size:1.68vh}
-  table.mkt td span{font-size:1.29vh}
-  table.mkt th{font-size:1.18vh}
+  table.mkt td b{font-size:calc(1.68*var(--u))}
+  table.mkt td span{font-size:calc(1.29*var(--u))}
+  table.mkt th{font-size:calc(1.18*var(--u))}
   .up{color:var(--accent)} .down{color:var(--bad)} .flat{color:var(--muted)}
   .tag{display:inline-block;padding:.1vh .5vw;border:1px solid var(--accent2);color:var(--accent2);
-       border-radius:1vh;font-size:1.23vh;letter-spacing:.1em}
+       border-radius:1vh;font-size:calc(1.23*var(--u));letter-spacing:.1em}
   footer{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
-    font-size:1.57vh;color:var(--muted);border:1px solid var(--line);background:var(--panel);
+    font-size:calc(1.57*var(--u));color:var(--muted);border:1px solid var(--line);background:var(--panel);
     border-radius:.6vh;padding:0 1.2vw;white-space:nowrap;overflow:hidden}
   #ticker{overflow:hidden;text-overflow:ellipsis;max-width:65%}
   .stale{color:var(--bad);font-weight:700}
@@ -124,80 +130,259 @@
   .dot{display:inline-block;width:1vh;height:1vh;border-radius:50%;background:var(--accent);margin-right:.5vw}
   .dot.stale{background:var(--bad)}
   .wide{grid-column:1/-1}
-  .sub2{display:flex;justify-content:space-between;font-size:1.34vh;color:var(--muted);
+  .sub2{display:flex;justify-content:space-between;font-size:calc(1.34*var(--u));color:var(--muted);
         text-transform:uppercase;letter-spacing:.1em;margin:1vh 0 .4vh;border-bottom:1px solid var(--line);padding-bottom:.3vh}
   .ctrs{flex:1;min-height:0;overflow:hidden}
   .ctr{padding:.3vh 0;border-bottom:1px solid #123526}
-  .ctr .t{display:flex;justify-content:space-between;font-size:1.68vh}
-  .ctr .t b{color:var(--text)} .ctr .t span{color:var(--muted);font-size:1.34vh}
-  .ctr .m{display:flex;justify-content:space-between;font-size:1.34vh;color:var(--muted);margin-top:.2vh}
+  .ctr .t{display:flex;justify-content:space-between;font-size:calc(1.68*var(--u))}
+  .ctr .t b{color:var(--text)} .ctr .t span{color:var(--muted);font-size:calc(1.34*var(--u))}
+  .ctr .m{display:flex;justify-content:space-between;font-size:calc(1.34*var(--u));color:var(--muted);margin-top:.2vh}
   .ctr .m em{font-style:normal;color:var(--accent2)}
   .ctr .bar{height:.9vh;margin:.3vh 0}
   .ctr.fim{opacity:.55}
-  #gPainel > *:not(h2){transition:opacity .3s ease,transform .3s ease}
-  #gPainel.troca > *:not(h2){opacity:0;transform:translateY(.8vh)}
+  /* ---- carrossel da direita: um assunto por vez, letra grande ---- */
+  .car h2 .dots{display:inline-flex;gap:.5vw;margin-left:1vw;vertical-align:middle}
+  .car h2 .dots{gap:.25vw}
+  .car h2 .dots i{width:2.4vh;height:2.4vh;border-radius:50%;cursor:pointer;position:relative;display:block}
+  .car h2 .dots i:before{content:"";position:absolute;inset:.6vh;border-radius:50%;background:var(--line);transition:background .4s,transform .2s}
+  .car h2 .dots i:hover:before{background:var(--muted);transform:scale(1.25)}
+  .car h2 .dots i.on:before{background:var(--accent)}
+  .prog{height:.35vh;background:#0a1c14;border-radius:1vh;overflow:hidden;margin:-.7vh 0 1.4vh}
+  .prog i{display:block;height:100%;width:0;background:var(--accent);opacity:.6}
+  .slides{flex:1;position:relative;min-height:0}
+  .slide{position:absolute;inset:0;display:flex;flex-direction:column;gap:1.6vh;opacity:0;transform:translateX(3vw);
+    transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+  .slide.on{opacity:1;transform:none}
+  .slide.sai{opacity:0;transform:translateX(-3vw)}
+  .nota{font-size:calc(1.5*var(--u));color:var(--muted);letter-spacing:.05em}
+  .nota b{color:var(--text);font-weight:600}
+  .slide h3{font-size:calc(1.6*var(--u));letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;
+    display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:.5vh}
+  .slide h3 small{font-size:calc(1.5*var(--u));letter-spacing:.03em;text-transform:none;font-weight:400}
+  .big3{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw}
+  .big3 .kpi{padding:1.2vh 1vw}
+  .big3 .kpi .l{font-size:calc(1.5*var(--u))}
+  .big3 .kpi .v{font-size:calc(5.6*var(--u))}
+  .big3 .kpi .a{font-size:calc(1.6*var(--u));color:var(--muted);margin-top:.4vh}
+  .big3 .kpi .a b{color:var(--text);font-variant-numeric:tabular-nums}
+  #sBov table{font-size:calc(2*var(--u))} #sBov th{font-size:calc(1.4*var(--u))} #sBov td{padding:.7vh .3vw}
+  #sBov td small{display:block;color:var(--muted);font-size:calc(1.4*var(--u))}
+  .gcols{display:grid;grid-template-columns:1fr 1fr;gap:1vw}
+  .gcol{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:1.2vh 1vw}
+  .gcol .p{display:flex;justify-content:space-between;align-items:baseline}
+  .gcol .p b{font-size:calc(2.4*var(--u));color:var(--accent)} .gcol .p span{font-size:calc(1.5*var(--u));color:var(--muted)}
+  .gcol .l{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:1vh}
+  .gcol .v{font-size:calc(4.6*var(--u));font-weight:700;color:var(--accent2);font-variant-numeric:tabular-nums;line-height:1.1}
+  .gcol .v small{font-size:calc(1.7*var(--u));color:var(--muted);font-weight:500;margin-left:.3vw}
+  .gcol .bar{height:1.2vh;margin:1vh 0 .4vh}
+  .gcol .m{display:flex;justify-content:space-between;font-size:calc(1.5*var(--u));color:var(--muted)}
+  .gcol .m b{color:var(--text);font-weight:600}
+  #sGraos .ctr .t{font-size:calc(1.9*var(--u))} #sGraos .ctr .t span,#sGraos .ctr .m{font-size:calc(1.5*var(--u))}
+  #sGraos .ctr{padding:.8vh 0}
+  /* ---- linha da chuva compacta: rótulo à esquerda + 7 cartões baixos ---- */
+  .chuvaP{flex-direction:row;gap:.8vw;padding:1vh 1vw}
+  .chuvaL{width:7.5vw;display:flex;flex-direction:column;justify-content:center;gap:.3vh;border-right:1px solid var(--line);padding-right:.8vw}
+  .chuvaL b{font-size:calc(2*var(--u));letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
+  .chuvaL span{font-size:calc(1.4*var(--u));color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+  .chuvaL small{font-size:calc(1.2*var(--u));color:var(--muted);line-height:1.3;margin-top:.4vh}
+  .chuvaP .chuva{flex:1;gap:.5vw}
+  .chuvaP .farm{padding:.6vh .6vw;gap:.2vh}
+  .chuvaP .farm .cab{align-items:center}
+  .chuvaP .farm b{font-size:calc(1.8*var(--u))}
+  .chuvaP .ont{font-size:calc(1.3*var(--u));color:var(--muted);white-space:nowrap}
+  .chuvaP .ont em{font-style:normal;font-size:calc(2.6*var(--u));font-weight:700;color:var(--accent);margin-right:.2vw}
+  .chuvaP .ac{font-size:calc(1.3*var(--u));color:var(--muted)} .chuvaP .ac b{font-size:calc(1.4*var(--u));color:var(--text);font-weight:600}
+  .chuvaP .bars{margin-top:.2vh;gap:.3vw}
+  .chuvaP .bars span,.chuvaP .bars em{font-size:calc(1.1*var(--u))}
+  /* barras horizontais (fazendas, motivos): nome | barra | valor */
+  .hb{display:flex;flex-direction:column;gap:.7vh;flex:1;min-height:0}
+  .hb .r{display:grid;grid-template-columns:11vw 1fr 6vw;align-items:center;gap:.8vw;font-size:calc(1.9*var(--u))}
+  .hb .r span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hb .r b{text-align:right;font-variant-numeric:tabular-nums}
+  .hb .r .t{height:1.9vh;background:#0a1c14;border-radius:.4vh;overflow:hidden;display:flex}
+  .hb .r .t i{display:block;height:100%;background:var(--c,var(--accent));transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  .hb.mini3{gap:.35vh;margin-top:.6vh} .hb.mini3 .r{font-size:calc(1.5*var(--u));grid-template-columns:10.5vw 1fr 2.6vw}
+  .hb.mini3 .r .t{height:1.2vh}
+  .lg{display:inline-block;width:1.1vh;height:1.1vh;border-radius:.2vh;background:var(--c);margin:0 .3vw 0 .8vw;vertical-align:middle}
+  /* ícones (SVG embutido, traço na cor do texto) */
+  .ico{display:inline-flex;width:1.25em;height:1.25em;margin-right:.45em;vertical-align:-.25em;color:var(--accent);flex:none}
+  .ico svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .kpi .l .ico,.ind .l .ico{color:var(--c,var(--accent));width:1.5em;height:1.5em;vertical-align:-.45em}
+  .ind .l .ico{color:var(--c)}
+  .slide h3 .ico{color:var(--muted)}
+  .car h2 #carIco{width:1.5em;height:1.5em;vertical-align:-.4em}
+  .chuvaL b .ico{width:1.2em;height:1.2em}
+  /* plantio e colheita: dois cartões lado a lado */
+  .pc2{display:grid;grid-template-columns:1fr 1fr;gap:1vw;flex:1;min-height:0}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:.6vh;padding:1.4vh 1vw;display:flex;flex-direction:column;gap:1vh;min-height:0}
+  .card .ch{font-size:calc(1.6*var(--u));letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center}
+  .card .ch .ico{width:1.6em;height:1.6em}
+  .grande{display:flex;align-items:baseline;gap:.5vw;flex-wrap:wrap}
+  .grande span{font-size:calc(5*var(--u));font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+  .grande small{font-size:calc(1.6*var(--u));color:var(--muted)} .grande small b{color:var(--text)}
+  .sub3{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--line);padding-bottom:.4vh}
+  .sub3:empty{display:none}
+  .dois{display:grid;grid-template-columns:1fr 1fr;gap:.8vw}
+  .dois .sub3{border:0;text-transform:none;letter-spacing:0;padding:0}
+  .dois .grande{flex-wrap:nowrap} .dois .grande span{font-size:calc(4.2*var(--u))}
+  .pp{display:grid;grid-template-columns:repeat(3,1fr);gap:.6vw}
+  .pp div{display:flex;flex-direction:column}
+  .pp small{font-size:calc(1.35*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .pp b{font-size:calc(3.6*var(--u));font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+  .pp i{font-style:normal;font-size:calc(1.35*var(--u));color:var(--muted)}
+  .sub3.cols{display:flex;justify-content:space-between}
+  #sPlant .hb .r{grid-template-columns:6.6vw 1fr auto}
+  #sPlant .hb .r b{font-size:calc(1.65*var(--u));white-space:nowrap} #sPlant .hb .r b small{color:var(--muted);font-weight:400}
+  .hb2 .r .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .hb2 .r .v em{font-style:normal;font-size:.75em;margin-left:.35vw;display:inline-block;width:1em}
+  .hb2 .r .v em.up{color:var(--accent)} .hb2 .r .v em.dn{color:var(--warn)}
+  .hb2 .r{grid-template-columns:1fr 4.6vw 4.6vw!important;border-bottom:1px solid #123526;padding-bottom:.6vh}
+  .hb2 .r.cab{font-size:calc(1.35*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .hb2 .r.cab .c{display:flex;align-items:center}
+  .cult{font-size:calc(1.7*var(--u));color:var(--text);display:flex;align-items:center} .cult .lg{margin:0 .4vw 0 0}
+  #sPlant .hb .r{grid-template-columns:7.5vw 1fr 4.6vw;font-size:calc(1.75*var(--u))}
+  .hb2{display:flex;flex-direction:column;gap:.9vh}
+  .hb2 .r{display:grid;grid-template-columns:7.5vw 1fr 1fr;gap:.6vw;align-items:center;font-size:calc(1.75*var(--u))}
+  .hb2 .r > span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hb2 .c{display:grid;grid-template-columns:1fr 2.6vw;gap:.3vw;align-items:center}
+  .hb2 .c .t{height:1.5vh;background:#0a1c14;border-radius:.4vh;overflow:hidden}
+  .hb2 .c .t i{display:block;height:100%;background:var(--c)}
+  .hb2 .c b{font-size:calc(1.6*var(--u));text-align:right;font-variant-numeric:tabular-nums}
+  table.pc{font-size:calc(1.9*var(--u))} table.pc th{font-size:calc(1.35*var(--u));text-align:center;line-height:1.3} table.pc th:first-child{text-align:left}
+  table.pc td{padding:.75vh .4vw;text-align:center} table.pc td:first-child{text-align:left}
+  table.pc td .bar{height:1vh;margin:.3vh 0 0} table.pc td small{color:var(--muted);font-size:calc(1.4*var(--u))}
+  table.pc tr.tot td{border-top:2px solid var(--line);font-weight:700;color:var(--accent2)}
+  /* estoques: 4 cartões em 2 colunas */
+  .faixa{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,1fr);gap:1.4vh 1vw;flex:1;min-height:0}
+  .ind{border:1px solid var(--line);background:var(--panel2);border-radius:.6vh;padding:1.2vh 1.2vw 1.2vh 1.6vw;
+    display:flex;flex-direction:column;justify-content:center;gap:.5vh;min-width:0;position:relative;overflow:hidden}
+  .ind:before{content:"";position:absolute;left:0;top:0;bottom:0;width:.35vw;background:var(--c,var(--accent))}
+  .ind .l{font-size:calc(1.6*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.12em;white-space:nowrap}
+  .ind .v{font-size:calc(5.4*var(--u));font-weight:700;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}
+  .ind .v small{font-size:calc(2*var(--u));color:var(--muted);font-weight:500;margin-left:.4vw}
+  .ind .d{font-size:calc(1.6*var(--u));color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #sMerc table.mkt td{padding:2.4vh .4vw} #sMerc table.mkt td b{font-size:calc(3.2*var(--u))} #sMerc table.mkt td span{font-size:calc(1.8*var(--u))}
+  #sMerc table.mkt th{font-size:calc(1.5*var(--u));padding-bottom:1vh} #sMerc table.mkt td:first-child{font-size:calc(2.2*var(--u))}
+  .ind .d b{color:var(--text);font-weight:600}
+  .ind .d{white-space:normal;overflow:visible;display:flex;flex-direction:column;gap:.5vh;margin-top:.6vh}
+  .ind .cb{display:flex;height:1.1vh;border-radius:1vh;overflow:hidden;margin-bottom:.3vh}
+  .ind .cb i{display:block;height:100%}
+  .ind .cr{display:grid;grid-template-columns:1.1vh 1fr auto 3.2vw;gap:.6vw;align-items:center;font-size:calc(1.7*var(--u))}
+  .ind .cr > i{width:1.1vh;height:1.1vh;border-radius:.25vh}
+  .ind .cr span{color:var(--muted)}
+  .ind .cr b{color:var(--text);font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+  .ind .cr b small{font-size:.8em;color:var(--muted);font-weight:400}
+  .ind .cr em{font-style:normal;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+  .ind .mini{height:.8vh;background:#0a1c14;border:1px solid var(--line);border-radius:1vh;overflow:hidden;margin-top:.3vh}
+  .ind .mini i{display:block;height:100%;background:var(--c,var(--accent));transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  .ind.vazio .v{color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div><h1>Painel de Operações</h1><div class="sub">BOVINOS · GRÃOS · CLIMA · MERCADO</div></div>
+    <div><h1>Painel de Operações</h1><div class="sub">BOVINOS · GRÃOS · ESTOQUES · PESSOAS · CLIMA · MERCADO</div></div>
     <div id="exemploTag"></div>
     <div class="dolar" id="dolar" title="Dólar comercial (AwesomeAPI)"><span class="l">DÓLAR</span> <b id="dolarV">--</b> <span id="dolarVar"></span></div>
     <div class="clock" id="clock">--:--:--</div>
   </header>
 
-  <!-- COLUNA ESQUERDA: BOVINOS -->
-  <div class="col">
-    <section class="panel" id="bovMes">
-      <h2>Bovinos <small id="bovAtual"></small></h2>
-      <div class="kpis">
-        <div class="kpi"><div class="l">Embarcado (mês)</div><div class="v" id="bEmb">–</div></div>
-        <div class="kpi"><div class="l">A embarcar (mês)</div><div class="v" id="bPend">–</div></div>
-        <div class="kpi"><div class="l">Abatidos (mês)</div><div class="v" id="bAbat">–</div></div>
-        <div class="kpi ano"><div class="l">Embarcado (ano)</div><div class="v" id="bEmbAno">–</div></div>
-        <div class="kpi ano"><div class="l">A embarcar (ano)</div><div class="v" id="bPendAno">–</div></div>
-        <div class="kpi ano"><div class="l">Abatidos (ano)</div><div class="v" id="bAbatAno">–</div></div>
-      </div>
-    </section>
-    <section class="panel">
-      <h2>Próximos embarques <small id="embResumo">cabeças</small></h2>
-      <table><thead><tr><th>Data</th><th>Frigorífico</th><th>Faz.</th><th class="n">Cab.</th></tr></thead><tbody id="bCrono" class="suave entra"></tbody></table>
-    </section>
-  </div>
-
-  <!-- CENTRO: RADAR -->
+  <!-- ESQUERDA: RADAR (fixo) -->
   <section class="panel">
-    <h2>Radar de chuva · fazendas <small id="radarAtual"></small></h2>
+    <h2><span><i class="ico" data-i="radar"></i>Radar de chuva · fazendas</span> <small id="radarAtual"></small></h2>
     <div class="map"><iframe id="radar" title="Radar de chuva (Windy)"></iframe><div id="mapa"></div></div>
   </section>
 
-  <!-- COLUNA DIREITA: GRÃOS + MERCADO -->
-  <div class="col right">
-    <section class="panel" id="gPainel">
-      <h2>Grãos · <span id="gProd">Soja</span> <small id="gSafra"></small></h2>
-      <div class="kpis">
-        <div class="kpi"><div class="l">Contratado</div><div class="v" id="gContr">–</div><div class="u">sacas</div></div>
-        <div class="kpi"><div class="l">Saldo a entregar</div><div class="v" id="gSaldo" style="color:var(--accent2)">–</div><div class="u">sacas</div></div>
+  <!-- DIREITA: CARROSSEL (um assunto por vez) -->
+  <section class="panel car">
+    <h2><span><i class="ico" id="carIco"></i><span id="carTitulo">Bovinos</span></span><span class="dots" id="dots"></span></h2>
+    <div class="prog"><i id="prog"></i></div>
+    <div class="slides">
+
+      <div class="slide" id="sBov" data-titulo="Bovinos" data-ico="boi">
+        <div class="big3">
+          <div class="kpi"><div class="l"><i class="ico" data-i="caminhao"></i>Embarcado no mês</div><div class="v" id="bEmb">–</div><div class="a">no ano <b id="bEmbAno">–</b></div></div>
+          <div class="kpi"><div class="l"><i class="ico" data-i="agenda"></i>A embarcar no mês</div><div class="v" id="bPend" style="color:var(--accent2)">–</div><div class="a">no ano <b id="bPendAno">–</b></div></div>
+          <div class="kpi"><div class="l"><i class="ico" data-i="fabrica"></i>Abatidos no mês</div><div class="v" id="bAbat">–</div><div class="a">no ano <b id="bAbatAno">–</b></div></div>
+        </div>
+        <div class="nota" id="bReb"></div>
+        <h3><span><i class="ico" data-i="caminhao"></i>Próximos embarques</span><small id="embResumo"></small></h3>
+        <table><thead><tr><th>Data</th><th>Frigorífico</th><th>Fazenda</th><th class="n">Cabeças</th></tr></thead><tbody id="bCrono"></tbody></table>
       </div>
-      <div class="bar"><i id="gBar" style="width:0"></i></div>
-      <div class="u" style="font-size:1.46vh;color:var(--muted)" id="gPct"></div>
-      <div class="kpis" style="margin-top:.8vh">
-        <div class="kpi"><div class="l">Saída hoje</div><div class="v" id="gCam">–</div></div>
-        <div class="kpi"><div class="l">Última saída</div><div class="v" id="gTon">–</div></div>
+
+      <div class="slide" id="sMortes" data-titulo="Mortes de bovinos" data-ico="alerta">
+        <div class="big3" style="grid-template-columns:1fr 1fr 2fr">
+          <div class="kpi"><div class="l"><i class="ico" data-i="alerta"></i><span id="mAnoL">Mortes no ano</span></div><div class="v" id="mTotal" style="color:var(--bad)">–</div><div class="a" id="mRel"></div></div>
+          <div class="kpi"><div class="l"><i class="ico" data-i="cantina"></i>Cantina</div><div class="v" id="mCant">–</div><div class="a">abates, fora das mortes</div></div>
+          <div class="kpi"><div class="l"><i class="ico" data-i="lista"></i>Principais causas</div><div class="hb mini3" id="mMotivos"></div></div>
+        </div>
+        <h3><span><i class="ico" data-i="pino"></i>Por fazenda</span> <small id="mNota"></small></h3>
+        <div class="hb" id="mFaz"></div>
       </div>
-      <div class="sub2"><span>Por contrato</span><span id="gPag"></span></div>
-      <div id="gContratos" class="ctrs suave entra"></div>
-    </section>
-    <section class="panel">
-      <h2>Mercado <small id="mercadoData">cotações · atualização diária</small></h2>
-      <div id="mercado" class="suave entra"></div>
-    </section>
-  </div>
+
+      <div class="slide" id="sGraos" data-titulo="Grãos · contratos de venda" data-ico="trigo">
+        <div class="gcols" id="gCols"></div>
+        <h3><span><i class="ico" data-i="contrato"></i>Contratos com saldo a entregar</span> <small id="gPag"></small></h3>
+        <div id="gContratos"></div>
+      </div>
+
+      <div class="slide" id="sPlant" data-titulo="Plantio e colheita" data-ico="broto">
+        <div class="pc2">
+          <!-- esquerda: safra em plantio -->
+          <div class="card">
+            <div class="ch"><i class="ico" data-i="broto"></i><span id="pPlL">Plantio</span></div>
+            <div class="pp">
+              <div><small>Planejado</small><b id="pPlan">–</b><i>ha</i></div>
+              <div><small>Plantado</small><b id="pPlt" style="color:#7fd35a">–</b><i>ha</i></div>
+              <div><small>Concluído</small><b id="pPl">–</b></div>
+            </div>
+            <div class="sub3 cols"><span>fazenda</span><span>plantado / planejado (ha)</span></div>
+            <div class="hb" id="pPlFaz"></div>
+          </div>
+          <!-- direita: última colheita de soja e de milho -->
+          <div class="card">
+            <div class="ch"><i class="ico" data-i="trigo"></i>Última colheita · produtividade</div>
+            <div class="dois">
+              <div><div class="cult"><i class="lg" style="--c:#35d07f"></i><span id="pSoL">Soja</span></div><div class="grande"><span id="pSo">–</span><small>sc/ha</small></div><div class="sub3" id="pSoA"></div></div>
+              <div><div class="cult"><i class="lg" style="--c:#f2b33d"></i><span id="pMiL">Milho</span></div><div class="grande"><span id="pMi">–</span><small>sc/ha</small></div><div class="sub3" id="pMiA"></div></div>
+            </div>
+            <div class="hb2" id="pCoFaz"></div>
+            <div class="nota" style="font-size:calc(1.3*var(--u))">▲ acima / ▼ abaixo da média geral da cultura</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide" id="sEst" data-titulo="Estoques" data-ico="armazem">
+        <div class="faixa" id="faixa">
+          <div class="ind vazio" id="iReb" style="--c:#e6c84a"><div class="l"><i class="ico" data-i="boi"></i>Rebanho</div><div class="v">–</div><div class="d"></div></div>
+          <div class="ind vazio" id="iDiesel" style="--c:#59c3ff"><div class="l"><i class="ico" data-i="bomba"></i>Diesel</div><div class="v">–</div><div class="d"></div></div>
+          <div class="ind vazio" id="iSoja" style="--c:#35d07f"><div class="l"><i class="ico" data-i="armazem"></i>Soja em estoque</div><div class="v">–</div><div class="d"></div></div>
+          <div class="ind vazio" id="iMilho" style="--c:#f2b33d"><div class="l"><i class="ico" data-i="armazem"></i>Milho em estoque</div><div class="v">–</div><div class="d"></div></div>
+        </div>
+      </div>
+
+      <div class="slide" id="sRH" data-titulo="Funcionários" data-ico="pessoas">
+        <div class="big3">
+          <div class="kpi"><div class="l"><i class="ico" data-i="pessoaOk"></i>Ativos</div><div class="v" id="rAt">–</div><div class="a" id="rTot"></div></div>
+          <div class="kpi"><div class="l"><i class="ico" data-i="ferias"></i>Em férias</div><div class="v" id="rFe" style="color:var(--accent2)">–</div><div class="a"></div></div>
+          <div class="kpi"><div class="l"><i class="ico" data-i="pessoaX"></i>Afastados</div><div class="v" id="rAf" style="color:var(--warn)">–</div><div class="a" id="rAso"></div></div>
+        </div>
+        <h3><span><i class="ico" data-i="pino"></i>Por local</span> <small><i class="lg" style="--c:var(--accent)"></i>ativos <i class="lg" style="--c:var(--accent2)"></i>férias <i class="lg" style="--c:var(--warn)"></i>afastados</small></h3>
+        <div class="hb" id="rFaz"></div>
+      </div>
+
+      <div class="slide" id="sMerc" data-titulo="Mercado" data-ico="alta">
+        <div class="nota" id="mercadoData">cotações · atualização diária</div>
+        <div id="mercado"></div>
+        <div class="nota">Boi em R$/@ · soja e milho em R$/saca de 60 kg · MT = média das praças do Imea</div>
+      </div>
+
+    </div>
+  </section>
 
   <!-- LINHA INFERIOR: CHUVA -->
-  <section class="panel wide">
-    <h2>Chuva por fazenda <small id="chuvaNota"></small></h2>
+  <section class="panel wide chuvaP">
+    <div class="chuvaL"><b><i class="ico" data-i="chuva"></i>Chuva</b><span>por fazenda</span><small id="chuvaNota"></small></div>
     <div class="chuva suave entra" id="chuva"></div>
   </section>
 
@@ -218,10 +403,9 @@ const CFG = {
   previsaoMin: 60,     // previsão de chuva 5 dias (Open-Meteo)
   climaAtrasoDias: 1,  // chuva medida mais velha que isso fica em laranja ("há N d")
   relogioSeg: 1,
-  contratosPorPagina: 2,   // linhas de contrato visíveis por vez na lateral de grãos
-  trocaPaginaSeg: 8,       // tempo entre páginas da lista de contratos e de embarques
-  embarquesPorPagina: 5,   // linhas de embarque visíveis por vez (com a fonte maior, 5 cabe em 1920x1080)
-  trocaProdutoSeg: 24,     // tempo em cada produto (soja, milho) antes de alternar
+  carrosselSeg: 20,        // tempo de cada assunto no bloco da direita (bovinos, grãos, estoques, mercado)
+  embarquesNaTela: 5,     // próximos embarques listados no assunto Bovinos
+  contratosNaTela: 3,      // contratos com saldo listados no assunto Grãos (vencimento mais próximo primeiro)
   alertaAtrasoMin: 450, // coletor roda às 7h e 13h; passou de 7,5 h sem BI novo, fica vermelho (à noite fica, é esperado)
   radarZoom: 7,            // zoom do mapa (inteiro). 7 = todas as fazendas; 8 aproxima mais
   ordemFazendas: ["Tucano", "Java", "Ponte de Pedra", "Promissão", "Galheiro", "Panamá", "Mato Grosso"],   // ordem dos cartões de chuva
@@ -287,17 +471,21 @@ function iniciarMapa(){
     .setView([centroMapa.lat, centroMapa.lon], CFG.radarZoom, { animate:false });
   const F = window.FAZENDAS; if(!F) return;
   L.geoJSON(F.talhoes, {
-    style: f => { const c = COR[f.properties.fazenda] || "#fff"; return { color:c, fillColor:c, weight:1, opacity:.85, fillOpacity:.35 }; }
+    style: f => { const c = COR[f.properties.fazenda] || "#fff"; return { color:c, fillColor:c, weight:1.6, opacity:1, fillOpacity:.5 }; }
   }).addTo(mapa);
   // Um ponto por sede + nome em texto simples. O lado do nome é escolhido para as fazendas
   // vizinhas (Java, Tucano, Ponte de Pedra) não se sobreporem.
-  const LADO = { "Java":["left",[-6,0]], "Tucano":["top",[0,-6]], "Ponte de Pedra":["right",[6,0]],
-                 "Promissão":["bottom",[0,6]], "Panamá":["top",[0,-6]], "Mato Grosso":["bottom",[0,6]],
+  const LADO = { "Java":["bottom",[0,6]], "Tucano":["top",[0,-6]], "Ponte de Pedra":["right",[6,0]],
+                 "Promissão":["bottom",[0,6]], "Panamá":["left",[-6,0]], "Mato Grosso":["bottom",[0,6]],
                  "Galheiro":["right",[6,0]] };
   F.sedes.forEach(s => {
     const [direction, offset] = LADO[s.fazenda] || ["top", [0, -6]];
-    rotulos[s.fazenda] = L.circleMarker([s.lat, s.lon], { radius:3, weight:1.5, color:"#fff", fillColor:COR[s.fazenda] || "#fff", fillOpacity:1 })
-      .bindTooltip(s.fazenda, { permanent:true, direction, offset, className:"rotulo" }).addTo(mapa);
+    const cor = COR[s.fazenda] || "#fff";
+    // halo translúcido + ponto grande com borda branca: a sede fica visível mesmo sobre o eco do radar
+    L.circleMarker([s.lat, s.lon], { radius:14, weight:0, fillColor:cor, fillOpacity:.28, interactive:false }).addTo(mapa);
+    rotulos[s.fazenda] = L.circleMarker([s.lat, s.lon], { radius:7, weight:2.5, color:"#fff", fillColor:cor, fillOpacity:1 })
+      .bindTooltip(s.fazenda, { permanent:true, direction, offset:[offset[0] * 2.4, offset[1] * 2.4], className:"rotulo" }).addTo(mapa);
+    rotulos[s.fazenda]._cor = cor;
   });
 }
 
@@ -307,6 +495,8 @@ function atualizarRotulos(){
     if(CFG.fonteChuva === "openmeteo" && modelo[nome]) txt = `${nome} <em>${modelo[nome].ontem} mm</em>`;
     else { const c = climaMedido.find(x => x.fazenda === nome); if(c) txt = `${nome} <em>${c.chuvaDia} mm</em>`; }
     m.setTooltipContent(txt);
+    const el = m.getTooltip() && m.getTooltip().getElement();
+    if(el) el.style.setProperty("--c", m._cor);      // faixa colorida da etiqueta = cor da fazenda
   });
 }
 
@@ -365,7 +555,7 @@ function desenharClima(){
     const barras = prev ? prev.map((mm, i) => {
       const dia = i === 0 ? "hoje" : new Date(m.datas[i] + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"short" }).replace(".", "");
       return `<div><em>${mm}</em><i style="--i:${i};height:${Math.max(2, mm / max * 80)}%"></i><span>${dia}</span></div>`;
-    }).join("") : `<div style="color:var(--muted);font-size:1.34vh;justify-content:center">sem previsão</div>`;
+    }).join("") : `<div style="color:var(--muted);font-size:calc(1.34*var(--u));justify-content:center">sem previsão</div>`;
 
     // Cartão enxuto: nome, o valor principal em destaque (ontem) e os acumulados em coluna, mais as barras da previsão.
     let cab = "", principal = null, acum = [];
@@ -377,13 +567,12 @@ function desenharClima(){
       cab = `<span class="dado ${velho ? "velho" : ""}">${fmtDia(f.dado)}${idade > 0 ? ` · há ${idade} d` : " · hoje"}</span>`;
       principal = ["no dia", f.chuvaDia]; acum = [["7 d", f.chuva7d], ["mês", f.chuvaMes], ["ano", f.chuvaAno]];
     }
-    const now = principal
-      ? `<div class="ontem"><span class="l">${principal[0]}</span><em>${principal[1]}</em><span class="u">mm</span></div>`
-        + `<div class="acum">${acum.map(([r, v]) => `<span><i>${r}</i><b>${v}</b></span>`).join("")}</div>`
-      : `<div class="ontem"><span class="l">sem dados</span></div>`;
-    return `<div class="farm" style="--i:${k}"><div class="cab"><b>${nome}</b>${cab}</div><div class="now">${now}</div><div class="bars">${barras}</div></div>`;
+    // Cartão baixo: nome + chuva de ontem na mesma linha, acumulados numa linha, previsão em barrinhas.
+    const ont = principal ? `<span class="ont" title="${principal[0]}"><em>${principal[1]}</em>mm</span>` : `<span class="ont">sem dados</span>`;
+    const ac = acum.map(([r, v]) => `${r} <b>${v}</b>`).join(" · ");
+    return `<div class="farm" style="--i:${k}"><div class="cab"><b>${nome}</b>${ont}</div><div class="ac">${ac}${cab ? " · " + cab : ""}</div><div class="bars">${barras}</div></div>`;
   }).join(""));
-  $("chuvaNota").textContent = usaModelo ? "estimativa Open-Meteo · mm · próximos 5 dias" : "medido (D-Lavro) · mm";
+  $("chuvaNota").textContent = usaModelo ? "nº = ontem · barras = 5 dias · Open-Meteo" : "nº = último dia (D-Lavro)";
 }
 
 function render(d){
@@ -398,13 +587,9 @@ function render(d){
   setNum("bEmbAno", b.mes.anoEmbarcado);
   setNum("bPendAno", b.mes.anoAEmbarcar);
   setNum("bAbatAno", b.mes.anoAbatidos);
-  embarques = b.cronograma;
-  desenharEmbarques();
+  desenharEmbarques(b.cronograma || []);
 
-  // d.graos pode ser um produto só ou uma lista (soja, milho...). A tela alterna entre eles.
-  graosLista = Array.isArray(d.graos) ? d.graos : [d.graos];
-  if(indiceGrao >= graosLista.length) indiceGrao = 0;
-  desenharGrao();
+  desenharGraos(Array.isArray(d.graos) ? d.graos : [d.graos]);
 
   const mk = d.mercado;
   const celula = c => {
@@ -418,7 +603,7 @@ function render(d){
   if(datas.length){
     const velha = (Date.now() - new Date(datas[0] + "T12:00:00")) / 86400000 > 3;
     sm.textContent = "cotações de " + datas[0].split("-").reverse().slice(0, 2).join("/");
-    sm.className = velha ? "stale" : "";
+    sm.classList.toggle("stale", velha);
   } else sm.textContent = "cotações · exemplo";
   setHtmlSuave($("mercado"), `<table class="mkt"><thead><tr><th></th>${mk.pracas.map(p => `<th class="n">${p}</th>`).join("")}</tr></thead><tbody>`
     + mk.linhas.map(l => `<tr><td>${l.produto}<br><span class="flat">por ${l.unidade}</span></td>${l.valores.map(celula).join("")}</tr>`).join("")
@@ -431,58 +616,101 @@ function render(d){
   window.__avisos = d.avisos || [];
 }
 
-// Próximos embarques: todos os programados, em páginas de 4 que se alternam (como os contratos).
-let embarques = [], paginaEmb = 0;
-function desenharEmbarques(){
-  const por = CFG.embarquesPorPagina, n = Math.max(1, Math.ceil(embarques.length / por));
-  paginaEmb = paginaEmb % n;
+// Próximos embarques: os N mais próximos; o resumo conta todos os programados.
+function desenharEmbarques(embarques){
   const total = embarques.reduce((s, c) => s + c.cabecas, 0);
-  $("embResumo").textContent = `${embarques.length} emb. · ${fmt(total)} cab.` + (n > 1 ? ` · ${paginaEmb + 1}/${n}` : "");
-  setHtmlSuave($("bCrono"), embarques.slice(paginaEmb * por, paginaEmb * por + por)
-    .map((c, i) => `<tr style="--i:${i}"><td>${c.data}</td><td>${c.frigorifico}<br><span style="color:var(--muted);font-size:1.34vh">${c.cidade}</span></td><td>${c.fazenda}</td><td class="n">${fmt(c.cabecas)}</td></tr>`).join(""));
+  $("embResumo").textContent = embarques.length ? `${embarques.length} programados · ${fmt(total)} cab.` : "nenhum programado";
+  setHtmlSuave($("bCrono"), embarques.slice(0, CFG.embarquesNaTela)
+    .map(c => `<tr><td>${c.data}</td><td>${c.frigorifico}<small>${c.cidade}</small></td><td>${c.fazenda}</td><td class="n">${fmt(c.cabecas)}</td></tr>`).join(""));
 }
 
-let contratos = [], paginaContratos = 0, graosLista = [], indiceGrao = 0;
-
-function desenharGrao(){
-  const g = graosLista[indiceGrao]; if(!g) return;
-  const saldo = g.contratadoSacas - g.entregueSacas;
-  $("gProd").textContent = g.produto;
-  $("gSafra").textContent = "safra " + g.safra + (graosLista.length > 1 ? ` · ${indiceGrao + 1}/${graosLista.length}` : "");
-  setNum("gContr", g.contratadoSacas);
-  setNum("gSaldo", saldo);
-  const pct = Math.round(g.entregueSacas / g.contratadoSacas * 100);
-  $("gBar").style.width = pct + "%";
-  $("gPct").textContent = pct + "% entregue";
-  // Saída = aumento do total entregue entre coletas (coletor/estado.json). Sem registro de saída: "sem saída".
-  const sd = g.saida;
-  $("gCam").textContent = sd ? fmt(sd.hojeSacas) + " sc" : "–";
+// Grãos: soja e milho lado a lado (safra mais recente de cada) + os contratos com saldo que vencem primeiro.
+function desenharGraos(lista){
   const dm = iso => iso.split("-").reverse().slice(0, 2).join("/");
-  $("gTon").textContent = !sd ? "–" : sd.ultima ? dm(sd.ultima) : "sem saída";
-  $("gTon").title = sd ? "Acompanhando desde " + dm(sd.desde) : "";
-  // Contratos com saldo primeiro (vencimento mais próximo), encerrados por último
-  const venc = s => s.split("/").reverse().join("");   // "dd/mm/aaaa" -> "aaaammdd"
-  contratos = [...g.contratos].sort((a, b) => {
-    const fa = a.contratadoSacas - a.entregueSacas <= 0, fb = b.contratadoSacas - b.entregueSacas <= 0;
-    return fa - fb || venc(a.vence).localeCompare(venc(b.vence));
-  });
-  paginaContratos = 0;
-  desenharContratos();
-}
-function desenharContratos(){
-  const por = CFG.contratosPorPagina, total = Math.max(1, Math.ceil(contratos.length / por));
-  const ini = (paginaContratos % total) * por;
-  $("gPag").textContent = total > 1 ? `${(paginaContratos % total) + 1}/${total}` : "";
-  setHtmlSuave($("gContratos"), contratos.slice(ini, ini + por).map((c, i) => {
-    const saldo = c.contratadoSacas - c.entregueSacas;
-    const pct = Math.min(100, Math.round(c.entregueSacas / c.contratadoSacas * 100));
-    return `<div class="ctr${saldo <= 0 ? " fim" : ""}" style="--i:${i}">
-      <div class="t"><b>${c.ctr} · ${c.cliente}</b><span>${c.fazenda}</span></div>
+  setHtmlSuave($("gCols"), lista.map(g => {
+    const saldo = g.contratadoSacas - g.entregueSacas;
+    const pct = Math.min(100, Math.round(g.entregueSacas / g.contratadoSacas * 100));
+    // Saída = aumento do total entregue entre coletas (coletor/estado.json).
+    const sd = g.saida;
+    const saida = !sd ? "–" : sd.hojeSacas ? `<b>${fmt(sd.hojeSacas)} sc</b> hoje` : sd.ultima ? `última <b>${dm(sd.ultima)}</b>` : "sem saída registrada";
+    return `<div class="gcol">
+      <div class="p"><b>${g.produto}</b><span>safra ${g.safra}</span></div>
+      <div class="l">Saldo a entregar</div>
+      <div class="v">${fmt(saldo)}<small>sc</small></div>
       <div class="bar"><i style="width:${pct}%"></i></div>
-      <div class="m"><span>${fmt(c.entregueSacas)} de ${fmt(c.contratadoSacas)} sc (${pct}%)</span>
-        <span>${saldo <= 0 ? "encerrado" : `saldo <em>${fmt(saldo)}</em> · vence ${c.vence.slice(0, 5)}`}</span></div>
+      <div class="m"><span><b>${pct}%</b> de ${fmt(g.contratadoSacas)} sc</span><span>${saida}</span></div>
     </div>`;
   }).join(""));
+  const venc = s => s.split("/").reverse().join("");   // "dd/mm/aaaa" -> "aaaammdd"
+  const abertos = lista.flatMap(g => g.contratos.map(c => ({ ...c, produto: g.produto })))
+    .filter(c => c.contratadoSacas - c.entregueSacas > 0)
+    .sort((a, b) => venc(a.vence).localeCompare(venc(b.vence)));
+  $("gPag").textContent = abertos.length ? `${abertos.length} em aberto` : "";
+  setHtmlSuave($("gContratos"), abertos.length ? abertos.slice(0, CFG.contratosNaTela).map(c => {
+    const saldo = c.contratadoSacas - c.entregueSacas;
+    const pct = Math.min(100, Math.round(c.entregueSacas / c.contratadoSacas * 100));
+    return `<div class="ctr">
+      <div class="t"><b>${c.produto} · ${c.cliente}</b><span>${c.fazenda} · vence ${c.vence.slice(0, 5)}</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="m"><span>${fmt(c.entregueSacas)} de ${fmt(c.contratadoSacas)} sc</span><span>saldo <em>${fmt(saldo)}</em> sc</span></div>
+    </div>`;
+  }).join("") : `<div class="nota">Nenhum contrato com saldo.</div>`);
+}
+
+/* ---------- ÍCONES: SVG embutidos (traço de 24x24, estilo Lucide), sem depender de internet ---------- */
+const ICONES = {
+  radar: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  boi: '<path d="M5 6.5 2 4.5M19 6.5l3-2"/><path d="M6 7.5C6 5.6 8.7 4 12 4s6 1.6 6 3.5V13c0 3.6-2.7 7-6 7s-6-3.4-6-7Z"/><circle cx="9.5" cy="10.5" r=".9"/><circle cx="14.5" cy="10.5" r=".9"/><path d="M9.5 16c1.6.8 3.4.8 5 0"/>',
+  alerta: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  trigo: '<path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/><path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/>',
+  broto: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+  armazem: '<path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"/><path d="M6 18h12"/><path d="M6 14h12"/><rect width="12" height="12" x="6" y="10"/>',
+  pessoas: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  pessoaOk: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>',
+  pessoaX: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" x2="22" y1="8" y2="13"/><line x1="22" x2="17" y1="8" y2="13"/>',
+  ferias: '<path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"/><path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"/><path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/>',
+  alta: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  caminhao: '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+  agenda: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>',
+  fabrica: '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/>',
+  lista: '<path d="M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13"/>',
+  pino: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  contrato: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8M16 13H8M16 17H8"/>',
+  bomba: '<line x1="3" x2="15" y1="22" y2="22"/><line x1="4" x2="14" y1="9" y2="9"/><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"/><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"/>',
+  chuva: '<path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>',
+  cantina: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+};
+const svgIcone = n => ICONES[n] ? `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[n]}</svg>` : "";
+document.querySelectorAll(".ico[data-i]").forEach(el => el.innerHTML = svgIcone(el.dataset.i));
+
+/* ---------- CARROSSEL: troca o assunto do bloco da direita a cada CFG.carrosselSeg ---------- */
+const slides = [...document.querySelectorAll(".slide")];
+let slideAtual = -1;
+// Bolinhas clicáveis: vão direto ao assunto e o tempo de troca recomeça a contar dali.
+$("dots").innerHTML = slides.map(s => `<i title="${s.dataset.titulo}"></i>`).join("");
+let relogioCarrossel = null;
+function irPara(n){
+  clearInterval(relogioCarrossel);
+  slideAtual = (n - 1 + slides.length) % slides.length;   // proximoSlide avança 1
+  proximoSlide();
+  relogioCarrossel = setInterval(proximoSlide, CFG.carrosselSeg * 1000);
+}
+[...$("dots").children].forEach((d, i) => d.addEventListener("click", () => irPara(i)));
+function proximoSlide(){
+  const ant = slides[slideAtual];
+  slideAtual = (slideAtual + 1) % slides.length;
+  const s = slides[slideAtual];
+  slides.forEach(x => { if(x !== s && x !== ant) x.classList.remove("on", "sai"); });
+  if(ant && ant !== s){ ant.classList.remove("on"); ant.classList.add("sai"); setTimeout(() => ant.classList.remove("sai"), 650); }
+  s.classList.add("on");
+  setTextoSuave($("carTitulo"), s.dataset.titulo);
+  $("carIco").innerHTML = svgIcone(s.dataset.ico);
+  [...$("dots").children].forEach((d, i) => d.classList.toggle("on", i === slideAtual));
+  const p = $("prog");                       // barrinha que enche até a próxima troca
+  p.style.transition = "none"; p.style.width = "0";
+  if(!reduzir) requestAnimationFrame(() => requestAnimationFrame(() => {
+    p.style.transition = `width ${CFG.carrosselSeg}s linear`; p.style.width = "100%";
+  }));
 }
 
 function atualizarStatus(){
@@ -523,7 +751,120 @@ async function carregarDados(){
   if(bi && bi.graos)   d.graos = bi.graos;     else d.exemploDe.push("grãos");
   if(bi) d.atualizadoEm = bi.atualizadoEm;
   d.deBi = !!bi;
-  render(d); atualizarStatus();
+  render(d); desenharFaixa(bi && bi.visao); atualizarStatus();
+}
+
+/* ---------- FAIXA de indicadores gerais (bi.visao, gerado pelo coletor) ----------
+   Cada cartão: valor grande + uma linha de detalhe. Sem dado, fica traço (nunca exemplo). */
+function cartao(id, valor, unidade, detalhe, pct, formato = fmt){
+  const el = $(id); if(!el) return;
+  const v = el.querySelector(".v"), d = el.querySelector(".d");
+  el.classList.toggle("vazio", valor == null);
+  if(valor == null){ v.textContent = "–"; d.innerHTML = ""; return; }
+  if(!v._num){ v.innerHTML = `<span id="${id}N"></span><small></small>`; v._num = true; }
+  v.querySelector("small").textContent = unidade || "";
+  setNum(id + "N", valor, formato);
+  let html = detalhe || "";
+  if(pct != null) html += `<div class="mini"><i style="width:${Math.min(100, pct)}%"></i></div>`;
+  if(d._h !== html){ d._h = html; d.innerHTML = html; }
+}
+// Subindicadores de um cartão de estoque: barra de composição (soma = 100%) + uma linha por parte
+// com cor, nome, quantidade e participação. comp=false: só as linhas (partes que não somam o total do cartão).
+function linhasSub(itens, comp = true){
+  const tot = itens.reduce((s, x) => s + x[1], 0) || 1;
+  const barra = comp ? `<div class="cb">${itens.map(([, q, , cor]) => `<i style="width:${q / tot * 100}%;background:${cor}"></i>`).join("")}</div>` : "";
+  return barra + itens.map(([n, q, u, cor]) => `<div class="cr"><i style="background:${cor}"></i><span>${n}</span><b>${fmt(q)} <small>${u}</small></b>${comp ? `<em>${Math.round(q / tot * 100)}%</em>` : ""}</div>`).join("");
+}
+function desenharFaixa(v){
+  v = v || {};
+  const r = v.rebanho;
+  $("bReb").innerHTML = r ? `Rebanho atual <b>${fmt(r.total)}</b> cabeças · confinamento <b>${fmt(r.confinamento)}</b> · pasto <b>${fmt(r.total - r.confinamento)}</b>` : "";
+  cartao("iReb", r && r.total, "cab.", r && r.confinamento != null
+    ? linhasSub([["Confinamento", r.confinamento, "cab.", "#e6c84a"], ["Pasto", r.total - r.confinamento, "cab.", "#8a7a3a"]]) : "");
+  const tons = { soja: ["#35d07f", "#1f8f5a", "#14583a"], milho: ["#f2b33d", "#b07d1f", "#6e4e12"] };
+  for(const [id, chave] of [["iSoja", "soja"], ["iMilho", "milho"]]){
+    const e = v.estoqueGraos && v.estoqueGraos[chave];
+    cartao(id, e && e.sacas, "sc", e ? linhasSub(e.porSafra.map((s, i) => ["Safra " + s.safra, s.sacas, "sc", tons[chave][Math.min(i, 2)]])) : "");
+  }
+  const c = v.combustivel;
+  cartao("iDiesel", c && c.diesel, "L", c && c.gasolina != null
+    ? linhasSub([["Gasolina", c.gasolina, "L", "#f2b33d"], ["Etanol", c.etanol || 0, "L", "#c79bff"]], false) : "");
+  desenharPlantio(v.plantio, v.colheita || {});
+  desenharRH(v.rh);
+  desenharMortes(v.mortes);
+}
+
+const fmt1 = n => n.toLocaleString("pt-BR", { minimumFractionDigits:1, maximumFractionDigits:1 });
+const safraCurta = s => (s || "").toLowerCase().replace("safra", "").replace(/\s+/g, " ").trim();   // "SOJA SAFRA 26/27" -> "soja 26/27"
+const ordemFaz = nome => { const i = CFG.ordemFazendas.indexOf(nome); return i < 0 ? 99 : i; };
+// Barras horizontais: [{nome, partes:[{v, cor}], rotulo}] escaladas pelo maior total.
+function barras(el, itens){
+  const max = Math.max(1, ...itens.map(x => x.partes.reduce((s, p) => s + p.v, 0)));
+  setHtmlSuave(el, itens.map(x => `<div class="r"><span>${x.nome}</span><div class="t">${
+    x.partes.map(p => `<i style="width:${p.v / max * 100}%;--c:${p.cor || "var(--accent)"}"></i>`).join("")}</div><b>${x.rotulo}</b></div>`).join(""));
+}
+
+/* ---------- PLANTIO E COLHEITA: safra em plantio + última colheita de soja e milho, por fazenda ---------- */
+function desenharPlantio(p, col){
+  const so = col.soja, mi = col.milho;
+  // ESQUERDA: safra em plantio. Barra de cada fazenda = quanto do planejado DELA já foi plantado (cheia = concluído).
+  if(p && p.planejadoHa){
+    const pct = Math.min(100, Math.round(p.plantadoHa / p.planejadoHa * 100));
+    $("pPlL").textContent = "Plantio · " + safraCurta(p.safra);
+    setNum("pPlan", Math.round(p.planejadoHa)); setNum("pPlt", Math.round(p.plantadoHa));
+    setNum("pPl", pct, n => n + "%");
+    const faz = [...p.fazendas].sort((a, b) => ordemFaz(a.fazenda) - ordemFaz(b.fazenda));
+    setHtmlSuave($("pPlFaz"), faz.map(f => {
+      const fp = f.planejadoHa ? Math.min(100, f.plantadoHa / f.planejadoHa * 100) : 0;
+      return `<div class="r"><span>${f.fazenda}</span>
+        <div class="t"><i style="width:${fp}%;--c:#7fd35a"></i></div>
+        <b>${fmt(Math.round(f.plantadoHa))} <small>/ ${fmt(Math.round(f.planejadoHa))}</small></b></div>`;
+    }).join(""));
+  } else { ["pPlan", "pPlt", "pPl"].forEach(id => setNum(id, null)); }
+  // DIREITA: última colheita de soja e de milho (sc/ha). Por fazenda, só o número e se ficou acima/abaixo da média.
+  for(const [id, c] of [["pSo", so], ["pMi", mi]]){
+    if(!c){ setNum(id, null); $(id + "A").textContent = ""; continue; }
+    // "MILHO SAFRINHA 26/26" -> "Milho safrinha 26"; "SOJA SAFRA 25/26" -> "Soja 25/26"
+    $(id + "L").textContent = safraCurta(c.safra).replace(/(\d\d)\/\1$/, "$1").replace(/^./, x => x.toUpperCase());
+    $(id).textContent = fmt1(c.scHa);
+    $(id + "A").innerHTML = `<b>${fmt(c.sacas)}</b> sc · ${fmt(Math.round(c.areaHa))} ha`;
+  }
+  const nomes = [...new Set([...(so ? so.fazendas : []), ...(mi ? mi.fazendas : [])].map(f => f.fazenda))]
+    .sort((a, b) => ordemFaz(a) - ordemFaz(b));
+  const ach = (c, n) => c && c.fazendas.find(f => f.fazenda === n);
+  const cel = (c, n) => {
+    const f = ach(c, n);
+    if(!f) return `<div class="v" style="color:var(--muted)">–<em></em></div>`;
+    const seta = f.scHa >= c.scHa ? '<em class="up">▲</em>' : '<em class="dn">▼</em>';
+    return `<div class="v">${fmt1(f.scHa)}${seta}</div>`;
+  };
+  setHtmlSuave($("pCoFaz"), `<div class="r cab"><span>sc/ha</span><div class="v"><i class="lg" style="--c:#35d07f;margin:0 .3vw 0 0"></i>soja</div><div class="v"><i class="lg" style="--c:#f2b33d;margin:0 .3vw 0 0"></i>milho</div></div>`
+    + nomes.map(n => `<div class="r"><span>${n}</span>${cel(so, n)}${cel(mi, n)}</div>`).join(""));
+}
+
+/* ---------- FUNCIONÁRIOS: só contagens ---------- */
+function desenharRH(h){
+  if(!h){ ["rAt", "rFe", "rAf"].forEach(id => setNum(id, null)); return; }
+  setNum("rAt", h.ativos); setNum("rFe", h.ferias); setNum("rAf", h.afastados);
+  $("rTot").innerHTML = `quadro total <b>${fmt(h.total)}</b>`;
+  $("rAso").innerHTML = h.exames && h.exames.vencidos != null ? `exames (ASO) vencidos <b>${h.exames.vencidos}</b>` : "";
+  if(h.fazendas) barras($("rFaz"), h.fazendas.map(f => ({
+    nome: f.fazenda, rotulo: fmt(f.ativos + f.ferias + f.afastados),
+    partes: [{ v: f.ativos }, { v: f.ferias, cor: "var(--accent2)" }, { v: f.afastados, cor: "var(--warn)" }] })));
+}
+
+/* ---------- MORTES de bovinos no ano (BI Mortes) ---------- */
+function desenharMortes(m){
+  if(!m){ setNum("mTotal", null); setNum("mCant", null); return; }
+  $("mAnoL").textContent = "Mortes " + (m.ano || "");
+  setNum("mTotal", m.total);          // coletor já tira o abate para cantina do total
+  setNum("mCant", m.cantina);
+  const hoje = new Date(), dias = Math.ceil((hoje - new Date(hoje.getFullYear(), 0, 1)) / 86400000);
+  $("mRel").innerHTML = m.total && String(m.ano) === String(hoje.getFullYear()) ? `média de <b>${fmt1(m.total / dias)}</b> por dia` : "";
+  barras($("mMotivos"), (m.motivos || []).map(x => ({ nome: x.motivo.split(" - ")[0], rotulo: fmt(x.qtd), partes: [{ v: x.qtd, cor: "var(--bad)" }] })));
+  barras($("mFaz"), [...(m.fazendas || [])].sort((a, b) => ordemFaz(a.fazenda) - ordemFaz(b.fazenda))
+    .map(f => ({ nome: f.fazenda, rotulo: fmt(f.mortes), partes: [{ v: f.mortes, cor: "#ff7a7a" }] })));
+  $("mNota").textContent = m.cantinaSeparada === false ? "inclui abate p/ cantina (não deu para separar)" : "sem abate p/ cantina";
 }
 
 let ai = 0;
@@ -541,15 +882,7 @@ setInterval(renderRadar, CFG.radarMin * 60000);
 setInterval(buscarModelo, CFG.previsaoMin * 60000);
 setInterval(buscarDolar, CFG.dolarMin * 60000);
 setInterval(ticker, 8000);
-setInterval(() => { paginaContratos++; desenharContratos(); }, CFG.trocaPaginaSeg * 1000);
-setInterval(() => { paginaEmb++; desenharEmbarques(); }, CFG.trocaPaginaSeg * 1000);
-setInterval(() => {
-  if(graosLista.length < 2) return;
-  indiceGrao = (indiceGrao + 1) % graosLista.length;
-  const p = $("gPainel"); p.classList.add("troca");
-  setTimeout(() => { desenharGrao(); p.classList.remove("troca"); }, 350);
-}, CFG.trocaProdutoSeg * 1000);
-
+irPara(0);   // começa no primeiro assunto e liga a troca automática
 renderRadar();
 buscarModelo();
 buscarDolar();
