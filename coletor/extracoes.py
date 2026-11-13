@@ -299,6 +299,273 @@ def bovinos_abatidos_mes(page, esperar, hoje):
     return resultado
 
 
+# ------------------------------------------------------------------ faixa de indicadores gerais
+
+def total_da_tela(fr):
+    """Número da linha 'Total' da tabela (o BI mostra 'Total', às vezes um espaço, e o valor)."""
+    partes = [p.strip() for p in fr.inner_text("body").split("\n")]
+    for i, p in enumerate(partes):
+        if p == "Total":
+            for q in partes[i + 1:i + 4]:
+                if re.fullmatch(r"[\d.]+(,\d+)?", q):
+                    return num(q)
+    return None
+
+
+def ler_tabela_conferida(page, ncols, col_valor):
+    """Lê a tabela e confere a soma com a linha Total do BI (avisa se não bater)."""
+    linhas = ler_tabela(page, ncols)
+    soma = sum(num(l[col_valor]) for l in linhas)
+    total = total_da_tela(frame_relatorio(page))
+    if total is not None and abs(soma - total) > 1:
+        print(f"  AVISO: soma das linhas {soma} != Total do BI {total}")
+    return linhas, total
+
+
+def estoques(page, esperar):
+    """BI 'Estoque' (PowerBI Celulares). Filtros vêm em 'Todos'; quantidades atuais, sem R$."""
+    out = {}
+    abrir_pagina(page, "Estoque de Bovinos", esperar)
+    linhas, total = ler_tabela_conferida(page, 3, 2)           # produto, armazém, qtd
+    conf = sum(num(q) for _, arm, q in linhas if "CONFINAMENTO" in arm.upper())
+    out["rebanho"] = {"total": round(total or sum(num(l[2]) for l in linhas)), "confinamento": round(conf)}
+
+    abrir_pagina(page, "Estoque de Graos", esperar)
+    linhas, _ = ler_tabela_conferida(page, 3, 2)               # produto, safra (armazém), sacas
+    graos = {}
+    for prod, safra, sc in linhas:
+        chave = "soja" if "SOJA" in prod.upper() else "milho" if "MILHO" in prod.upper() else None
+        if not chave:
+            continue
+        g = graos.setdefault(chave, {"sacas": 0, "porSafra": {}})
+        g["sacas"] += num(sc)
+        s = safra.upper().replace("SAFRA", "").strip()
+        g["porSafra"][s] = g["porSafra"].get(s, 0) + num(sc)
+    for g in graos.values():
+        g["sacas"] = round(g["sacas"])
+        g["porSafra"] = [{"safra": s, "sacas": round(v)} for s, v in
+                         sorted(g["porSafra"].items(), key=lambda kv: -kv[1])]
+    out["estoqueGraos"] = graos
+
+    abrir_pagina(page, "Estoque Combustivel", esperar)
+    linhas, _ = ler_tabela_conferida(page, 3, 2)               # produto, grupo, litros
+    soma = lambda f: round(sum(num(q) for p, g, q in linhas if f(p.upper(), g.upper())))
+    out["combustivel"] = {
+        "diesel": soma(lambda p, g: g == "OLEO DIESEL"),
+        "gasolina": soma(lambda p, g: p.startswith("GASOLINA")),
+        "etanol": soma(lambda p, g: g == "ETANOL"),
+    }
+    return out
+
+
+def rh_quadro(page):
+    """Cartões da página inicial do Painel de RH (filtros em 'Todos'). Só contagens."""
+    partes = [p.strip() for p in frame_relatorio(page).inner_text("body").split("\n")]
+    def depois(rotulo):
+        for i, p in enumerate(partes):
+            if p == rotulo and i + 1 < len(partes) and re.fullmatch(r"[\d.]+", partes[i + 1]):
+                return int(num(partes[i + 1]))
+        return None
+    return {"total": depois("Total Funcionários"), "ativos": depois("Total ativo"),
+            "afastados": depois("Afastados"), "ferias": depois("Férias")}
+
+
+NOMES = [("PONTE DE PEDRA", "Ponte de Pedra"), ("P.PEDRA", "Ponte de Pedra"), ("P. PEDRA", "Ponte de Pedra"),
+         ("PROMISS", "Promissão"), ("PANAMA", "Panamá"), ("MATO GROSSO", "Mato Grosso"), ("MATOGROSSO", "Mato Grosso"),
+         ("GALHEIRO", "Galheiro"), ("TUCANO", "Tucano"), ("JAVA", "Java"),
+         ("CAMPO GRANDE", "Escritório C. Grande"), ("C. GRANDE", "Escritório C. Grande"),
+         ("CAMPO NOVO", "Escritório C. Novo"), ("C. NOVO", "Escritório C. Novo")]
+
+
+def nome_fazenda(txt):
+    """'FAZENDA P.PEDRA' / '03 - P. PEDRA' / 'FAZENDAPROMISS…' -> nome usado no painel."""
+    t = txt.upper().replace("…", "").replace(" ", "")      # gráfico do BI cola as palavras: "FAZENDAPONTE DEPEDRA"
+    for chave, nome in NOMES:
+        if chave.replace(" ", "") in t:
+            return nome
+    return titulo(txt)
+
+
+def linhas_de_tabela(fr, ncols):
+    """Linhas visíveis ('Selecionar Linha' + ncols campos) e os números da linha Total (tabelas pequenas, sem rolar)."""
+    partes = [p.strip() for p in fr.inner_text("body").split("\n")]
+    linhas = linhas_visiveis(fr, ncols)
+    total = []
+    for i, p in enumerate(partes):
+        if p == "Total":
+            total = [num(q) for q in partes[i + 1:i + 1 + ncols + 2] if re.fullmatch(r"[\d.]+(,\d+)?", q)]
+            if total:
+                break
+    return linhas, total, partes
+
+
+def valor_do_filtro(partes, rotulo):
+    for i, p in enumerate(partes):
+        if p == rotulo and i + 1 < len(partes):
+            return partes[i + 1]
+    return None
+
+
+def plantio(page, esperar):
+    """'Plantio por Fazenda' do Indicadores de Plantio: planejado x plantado por fazenda do período selecionado.
+    O filtro PERIODO SAFRA vem preso no período em andamento do BI (hoje SOJA SAFRA 26/27)."""
+    abrir_pagina(page, "Plantio por Fazenda", esperar)
+    linhas, total, partes = linhas_de_tabela(frame_relatorio(page), 7)   # fazenda, período, data, planej., plantado, a plantar, %
+    linhas = [l for l in linhas if "SAFRA" in l[1].upper()]              # a página tem outra tabela menor embaixo
+    if len(total) < 2:
+        return None
+    return {"safra": valor_do_filtro(partes, "PERIODO SAFRA"), "planejadoHa": total[0], "plantadoHa": total[1],
+            "fazendas": [{"fazenda": nome_fazenda(l[0]), "planejadoHa": num(l[3]), "plantadoHa": num(l[4]),
+                          "ultimoPlantio": l[2]} for l in linhas]}
+
+
+def colheita(page, esperar):
+    """'Produção por Fazenda - Sintetico' (Indicadores Colheita Soja/Milho): área colhida, sacas e sc/ha por fazenda
+    do PERIODO PRODUCAO selecionado no BI (vem na safra mais recente: soja 25/26, milho safrinha 26)."""
+    abrir_pagina(page, "Produção por Fazenda - Sintetico", esperar)
+    linhas, total, partes = linhas_de_tabela(frame_relatorio(page), 4)   # fazenda, área, sacas, sc/ha
+    if len(total) < 3:
+        return None
+    return {"safra": valor_do_filtro(partes, "PERIODO PRODUCAO"), "areaHa": total[0], "sacas": round(total[1]),
+            "scHa": total[2], "fazendas": [{"fazenda": nome_fazenda(l[0]), "areaHa": num(l[1]), "sacas": round(num(l[2])),
+                                            "scHa": num(l[3])} for l in linhas]}
+
+
+def rh_por_fazenda(page, esperar):
+    """Página 'Funcionarios Ativos': conta as linhas da tabela por filial e situação.
+    Só as contagens saem daqui; nomes e documentos da tabela não são gravados."""
+    abrir_pagina(page, "Funcionarios Ativos", esperar)
+    esperado = valor_do_filtro([p.strip() for p in frame_relatorio(page).inner_text("body").split("\n")], "Total Funcionários")
+    esperado = int(num(esperado)) if esperado else None
+    # filial, contrato, matrícula, admissão, nome, situação, centro de custo, função. Tabela virtualizada:
+    # se a rolagem pular linhas, tenta de novo com passo menor até bater com o cartão "Total Funcionários".
+    for passo in (250, 150, 90):
+        linhas = ler_tabela(page, 8, max_voltas=300, passo=passo)
+        if esperado is None or len(linhas) >= esperado:
+            break
+    if esperado and len(linhas) != esperado:
+        print(f"  AVISO RH: li {len(linhas)} linhas, o cartão diz {esperado}")
+    por, areas = {}, {}
+    for l in linhas:
+        f = por.setdefault(nome_fazenda(l[0]), {"ativos": 0, "ferias": 0, "afastados": 0})
+        s = l[5].upper()
+        f["ferias" if "FÉRIAS" in s or "FERIAS" in s else "afastados" if "AFAST" in s else "ativos"] += 1
+        areas[titulo(l[6])] = areas.get(titulo(l[6]), 0) + 1
+    return {"linhasLidas": len(linhas), "linhasEsperadas": esperado,
+            "fazendas": sorted([{"fazenda": k, **v} for k, v in por.items()], key=lambda x: -sum(x[k] for k in ("ativos", "ferias", "afastados"))),
+            "areas": [{"area": k, "qtd": v} for k, v in sorted(areas.items(), key=lambda kv: -kv[1])[:6]]}
+
+
+def rh_exames(page):
+    """Cartões de exame (ASO) da página inicial do Painel de RH."""
+    partes = [p.strip() for p in frame_relatorio(page).inner_text("body").split("\n")]
+    def depois(r):
+        v = valor_do_filtro(partes, r)
+        return int(num(v)) if v and re.fullmatch(r"[\d.]+", v) else None
+    return {"vencidos": depois("Vencidos"), "aVencer": depois("Prox Venc.")}
+
+
+CANTINA = "ABATE PARA CANTINA"
+
+
+def mortes_por_fazenda(fr):
+    """Matriz 'Total de Morte' (FILIAL | ano | Total): {fazenda: total}. Nomes completos, ao contrário do gráfico."""
+    partes = [p.strip() for p in fr.inner_text("body").split("\n") if p.strip()]
+    if "Total de Morte" not in partes:
+        return {}
+    i, out = partes.index("Total de Morte") + 1, {}
+    while i < len(partes) and not partes[i].upper().startswith("FAZENDA"):   # pula o cabeçalho (FILIAL | ano | Total)
+        i += 1
+    while i < len(partes) and partes[i] != "Total":
+        p = partes[i]
+        if p.upper().startswith("FAZENDA") and i + 2 < len(partes) and re.fullmatch(r"[\d.]+", partes[i + 2]):
+            out[nome_fazenda(p)] = int(num(partes[i + 2])); i += 3
+        else:
+            i += 1
+    return out
+
+
+def filtrar_motivo(page, motivo):
+    """Filtro MOTIVO da página Mortes. motivo=None volta para 'Todos' (desmarca o que estiver marcado)."""
+    fr = frame_relatorio(page)
+    caixa = fr.locator(".slicer-container").filter(has_text="MOTIVO").first
+    caixa.locator(".slicer-dropdown-menu, .slicer-restatement, .dropdown-chevron").first.click()
+    page.wait_for_timeout(1500)
+    for it in fr.locator(".slicerItemContainer").all():
+        txt = it.inner_text().strip().upper()
+        marcado = "selected" in (it.locator(".slicerCheckbox").first.get_attribute("class") or "")
+        if (motivo and txt == motivo and not marcado) or (not motivo and marcado and txt != "SELECIONAR TUDO"):
+            it.click(); page.wait_for_timeout(1500)
+            if motivo:
+                break
+    page.keyboard.press("Escape")
+    page.mouse.click(1590, 170)
+    page.wait_for_timeout(3000)
+
+
+def mortes(page, esperar):
+    """Página 'Mortes' do BI Mortes (filtro PERIODO = ano corrente).
+    Abate para cantina NÃO é morte para o painel: sai do total, dos motivos e das barras por fazenda e vira
+    um número à parte. Para separar por fazenda, filtra MOTIVO = cantina, lê, e devolve o filtro para 'Todos'."""
+    fr = frame_relatorio(page)
+    partes = [p.strip() for p in fr.inner_text("body").split("\n") if p.strip()]
+    ano = valor_do_filtro(partes, "PERIODO")
+    total = int(num(valor_do_filtro(partes, "Total de Mortes")))
+    motivos_todos = [(m.strip().upper(), int(num(q))) for m, q, _ in linhas_visiveis(fr, 3)]
+    cantina = sum(q for m, q in motivos_todos if m == CANTINA)
+    geral = mortes_por_fazenda(fr)
+    cant_faz = {}
+    if cantina:
+        try:
+            filtrar_motivo(page, CANTINA)
+            fr = frame_relatorio(page)
+            if valor_do_filtro([p.strip() for p in fr.inner_text("body").split("\n") if p.strip()], "MOTIVO").upper() == CANTINA:
+                cant_faz = mortes_por_fazenda(fr)
+        finally:
+            filtrar_motivo(page, None)
+            esperar(page)
+            volta = valor_do_filtro([p.strip() for p in frame_relatorio(page).inner_text("body").split("\n") if p.strip()], "MOTIVO")
+            if volta != "Todos":
+                print("  AVISO mortes: filtro MOTIVO ficou em", volta)
+    if cantina and sum(cant_faz.values()) != cantina:
+        print(f"  AVISO mortes: cantina por fazenda {sum(cant_faz.values())} != {cantina}; barras ficam com cantina")
+        cant_faz = {}
+    fazendas = sorted([{"fazenda": f, "mortes": v - cant_faz.get(f, 0), "cantina": cant_faz.get(f, 0)} for f, v in geral.items()],
+                      key=lambda x: -x["mortes"])
+    motivos = [{"motivo": m.capitalize(), "qtd": q} for m, q in motivos_todos if m != CANTINA][:5]
+    return {"ano": ano, "total": total - cantina, "cantina": cantina, "cantinaSeparada": bool(cant_faz) or not cantina,
+            "fazendas": fazendas, "motivos": motivos}
+
+
+def visao_geral(page, url_relatorio, esperar, esta_logado):
+    """Indicadores das abas Estoques, Plantio/colheita, Funcionários e Mortes.
+    Uma falha num BI não derruba os outros (fica traço no painel)."""
+    v = {}
+    def rh():
+        v["rh"] = rh_quadro(page)
+        v["rh"]["exames"] = rh_exames(page)
+        v["rh"].update(rh_por_fazenda(page, esperar))
+    def plantio_colheita():
+        v["plantio"] = plantio(page, esperar)
+    for nome, func in [("estoque", lambda: v.update(estoques(page, esperar))),
+                       ("rh", rh),
+                       ("plantio", plantio_colheita),
+                       ("colheita_soja", lambda: v.setdefault("colheita", {}).__setitem__("soja", colheita(page, esperar))),
+                       ("colheita_milho", lambda: v.setdefault("colheita", {}).__setitem__("milho", colheita(page, esperar))),
+                       ("mortes", lambda: (abrir_pagina(page, "Mortes", esperar), v.__setitem__("mortes", mortes(page, esperar))))]:
+        try:
+            page.goto(url_relatorio(nome), wait_until="domcontentloaded")
+            if not esta_logado(page):
+                raise SystemExit("Sem login: rode python coletor.py login")
+            esperar(page)
+            func()
+        except SystemExit:
+            raise
+        except Exception as e:
+            print(f"  ERRO {nome}: {e}")
+    return v
+
+
 def coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado):
     page.goto(url_relatorio("venda_bovinos"), wait_until="domcontentloaded")
     if not esta_logado(page):
@@ -317,4 +584,6 @@ def coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado):
     graos = graos_contratos(page, esperar_relatorio)
     acompanhar_saidas(graos, date.today())
     print("graos:", [(g["produto"], g["safra"], g["contratadoSacas"], g["entregueSacas"], len(g["contratos"])) for g in graos])
-    return {"bovinos": {"cronograma": cron, "mes": mes}, "graos": graos}
+    visao = visao_geral(page, url_relatorio, esperar_relatorio, esta_logado)
+    print("visao:", visao)
+    return {"bovinos": {"cronograma": cron, "mes": mes}, "graos": graos, "visao": visao}
