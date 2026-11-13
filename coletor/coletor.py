@@ -32,7 +32,8 @@ RELATORIOS = {
     "contrato_graos": "8c2c1c01-310b-4c25-a4cb-32ce4fb42934",
     "romaneios": "141523b6-a1d2-4c0d-8127-9b7716fd629e",
     "dlavro": "26c2786b-90cb-4061-a866-01bb36aa12f1",
-    "estoque": "99cf7121-5663-4482-805c-43c80972867a",      # PowerBI Celulares: bovinos, grãos, combustível
+    "estoque": "99cf7121-5663-4482-805c-43c80972867a",      # PowerBI Celulares (DESATUALIZADO, não usar)
+    "ger_estoque": "fccc6dc1-8135-4f09-9d06-6fa8ee1264c2",  # Gerenciamento do Estoque: saldo atual (fonte certa)
     "rh": "af53f0dc-1a29-4452-9366-9907927b9be9",           # Painel de Recursos Humanos - Fazendas
     "plantio": "55cf318b-874c-4c2c-8ed8-a4b901ccd4f9",      # Indicadores de Plantio
     "colheita_soja": "e54486e0-b7ff-4bba-a0a8-c96f3ef61f94",  # Indicadores Colheita Soja

@@ -311,13 +311,18 @@ def bovinos_abatidos_mes(page, esperar, hoje):
 
 # ------------------------------------------------------------------ faixa de indicadores gerais
 
-def total_da_tela(fr):
-    """Número da linha 'Total' da tabela (o BI mostra 'Total', às vezes um espaço, e o valor)."""
+def total_da_tela(fr, decimal=False):
+    """Número da linha 'Total' da tabela (o BI mostra 'Total', às vezes um espaço, e o valor).
+    decimal=True exige vírgula decimal ('137.224.434,68'): evita pegar o 'Total' do cabeçalho seguido de
+    códigos como '04' da primeira linha."""
+    padrao = r"[\d.]+,\d+" if decimal else r"[\d.]+(,\d+)?"
     partes = [p.strip() for p in fr.inner_text("body").split("\n")]
     for i, p in enumerate(partes):
         if p == "Total":
             for q in partes[i + 1:i + 4]:
-                if re.fullmatch(r"[\d.]+(,\d+)?", q):
+                if q == "Selecionar Linha":
+                    break
+                if re.fullmatch(padrao, q):
                     return num(q)
     return None
 
@@ -365,6 +370,79 @@ def estoques(page, esperar):
         "gasolina": soma(lambda p, g: p.startswith("GASOLINA")),
         "etanol": soma(lambda p, g: g == "ETANOL"),
     }
+    return out
+
+
+def filtrar_dropdown(page, campo, valor):
+    """Slicer de lista suspensa com busca (seleção única): escolhe só `valor`.
+    `campo` = nome do campo do slicer (aparece no textContent dele, ex.: 'Grupo de Produto').
+    Devolve False se o valor não existir na lista."""
+    fr = frame_relatorio(page)
+    caixa = fr.locator(".slicer-container").filter(has_text=campo).first
+    caixa.locator(".slicer-dropdown-menu, .slicer-restatement, .dropdown-chevron").first.click()
+    page.wait_for_timeout(1200)
+    busca = fr.locator("input.searchInput:visible, .searchHeader input:visible").first
+    if busca.count():
+        busca.click(); page.keyboard.press("Control+A"); page.keyboard.type(valor, delay=40); page.wait_for_timeout(1500)
+    item = fr.locator(".slicerItemContainer:visible").filter(has_text=re.compile(r"^\s*" + re.escape(valor) + r"\s*$")).first
+    achou = item.count() > 0
+    if achou and not _marcado(item):
+        item.click(); page.wait_for_timeout(1500)
+    page.keyboard.press("Escape")
+    page.mouse.click(1590, 170)
+    page.wait_for_timeout(2500)
+    return achou
+
+
+def ger_estoque(page, esperar):
+    """BI 'Gerenciamento do Estoque' (saldo atual do Protheus). Fonte certa do estoque — o BI 'Estoque' do
+    PowerBI Celulares está desatualizado (13/11/2026: soja 606 mil sc lá x 2,7 mil sc aqui).
+    - Saldo Bovinos: tabela Filial | Armazém | Grupo | Fêmea | Macho | Total.
+    - Saldo Atual de Produtos filtrado por grupo: soja e milho (kg -> sacas de 60 kg, por armazém/safra),
+      óleo diesel, gasolina e etanol (litros)."""
+    out = {}
+    abrir_pagina(page, "Saldo Bovinos", esperar)
+    linhas = ler_tabela(page, 6)
+    tot = sum(num(l[5]) for l in linhas if l[5].strip())
+    conf = sum(num(l[5]) for l in linhas if "CONFINAMENTO" in l[1].upper() and l[5].strip())
+    partes = [p.strip() for p in frame_relatorio(page).inner_text("body").split("\n")]
+    bi_tot = None
+    for i, p in enumerate(partes):
+        if p == "Total":
+            ns = [num(q) for q in partes[i + 1:i + 6] if re.fullmatch(r"[\d.]+,\d+", q)]
+            if ns:
+                bi_tot = ns[-1]
+    if bi_tot and abs(bi_tot - tot) > 1:
+        print(f"  AVISO rebanho: soma das linhas {tot} != Total do BI {bi_tot} (usando o do BI)")
+    out["rebanho"] = {"total": round(bi_tot or tot), "confinamento": round(conf)}
+
+    abrir_pagina(page, "Saldo Atual de Produtos", esperar)
+    graos = {}
+    for chave, grupo in (("soja", "SOJA EM GRAOS"), ("milho", "MILHO EM GRAOS")):
+        if not filtrar_dropdown(page, "Grupo de Produto", grupo):
+            print("  AVISO estoque: grupo não encontrado:", grupo); continue
+        esperar(page)
+        linhas = ler_tabela(page, 11)                             # ..., saldo (kg) na 5ª coluna, armazém na 8ª
+        total = total_da_tela(frame_relatorio(page), decimal=True)
+        soma_kg = sum(num(l[4]) for l in linhas)
+        if total is not None and abs(soma_kg - total) > 1:
+            print(f"  AVISO estoque {grupo}: soma das linhas {soma_kg} != Total do BI {total}")
+        por = {}
+        for l in linhas:
+            s = re.sub(r"(?i)safra", "", l[7]).strip() or l[7]
+            por[s] = por.get(s, 0) + num(l[4]) / 60
+        kg = total if total is not None else sum(num(l[4]) for l in linhas)
+        graos[chave] = {"sacas": round(kg / 60), "kg": round(kg),
+                        "porSafra": [{"safra": s, "sacas": round(v)} for s, v in sorted(por.items(), key=lambda kv: -kv[1]) if round(v)]}
+    out["estoqueGraos"] = graos
+
+    comb = {}
+    for chave, grupo in (("diesel", "OLEO DIESEL"), ("gasolina", "GASOLINA"), ("etanol", "ETANOL")):
+        if not filtrar_dropdown(page, "Grupo de Produto", grupo):
+            print("  aviso estoque: grupo não encontrado:", grupo); continue
+        esperar(page)
+        comb[chave] = round(sum(num(l[4]) for l in ler_tabela(page, 11)))   # saldo (L) na 5ª coluna
+    out["combustivel"] = comb
     return out
 
 
@@ -662,7 +740,7 @@ def visao_geral(page, url_relatorio, esperar, esta_logado):
         v["rh"].update(rh_por_fazenda(page, esperar))
     def plantio_colheita():
         v["plantio"] = plantio(page, esperar)
-    for nome, func in [("estoque", lambda: v.update(estoques(page, esperar))),
+    for nome, func in [("ger_estoque", lambda: v.update(ger_estoque(page, esperar))),
                        ("rh", rh),
                        ("plantio", plantio_colheita),
                        ("colheita_soja", lambda: v.setdefault("colheita", {}).__setitem__("soja", colheita(page, esperar))),

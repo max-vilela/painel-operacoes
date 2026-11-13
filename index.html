@@ -319,7 +319,7 @@
       <div class="slide" id="sMortes" data-titulo="Mortes de bovinos" data-ico="alerta">
         <div class="big3" style="grid-template-columns:1fr 1fr 2fr">
           <div class="kpi"><div class="l"><i class="ico" data-i="alerta"></i><span id="mAnoL">Mortes no ano</span></div><div class="v" id="mTotal" style="color:var(--bad)">–</div><div class="a" id="mRel"></div></div>
-          <div class="kpi"><div class="l"><i class="ico" data-i="cantina"></i>Cantina</div><div class="v" id="mCant">–</div><div class="a" id="mCantMes">abates, fora das mortes</div></div>
+          <div class="kpi"><div class="l"><i class="ico" data-i="cantina"></i><span id="mCantLbl">Cantina</span></div><div class="v" id="mCant">–</div><div class="a" id="mCantMes">abates, fora das mortes</div></div>
           <div class="kpi"><div class="l"><i class="ico" data-i="lista"></i>Principais causas</div><div class="hb mini3" id="mMotivos"></div></div>
         </div>
         <h3><span><i class="ico" data-i="pino"></i>Por fazenda</span> <small id="mNota"></small></h3>
@@ -784,12 +784,14 @@ function linhasSub(itens, comp = true){
 // Estoque de grãos: barra = estoque inteiro, parte já negociada (saldo a entregar dos contratos abertos
 // do produto, qualquer safra) e parte livre. Embaixo, as safras em estoque com a participação de cada uma.
 function linhasGrao(e, cores){
-  const safras = e.porSafra.map((s, i) => ["Safra " + s.safra, s.sacas, "sc", cores[Math.min(i, 2)]]);
+  // "26/26" -> "Safra 26/26"; armazém sem safra (ex.: "FABRICA DE RACAO") -> "Fabrica de racao"
+  const rot = s => /^\d\d\/\d\d$/.test(s) ? "Safra " + s : s.charAt(0) + s.slice(1).toLowerCase();
+  const safras = e.porSafra.map((s, i) => [rot(s.safra), s.sacas, "sc", cores[Math.min(i, 2)]]);
   if(e.negociado == null) return linhasSub(safras);
   const neg = Math.min(e.negociado, e.sacas), livre = e.sacas - neg;
   const pct = q => Math.round(q / (e.sacas || 1) * 100);
   const topo = `<div class="cb"><i style="width:${neg / e.sacas * 100}%;background:#e8f5ec"></i><i style="width:${livre / e.sacas * 100}%;background:${cores[0]}"></i></div>
-    <div class="neg"><span><i style="background:#e8f5ec"></i>negociado <b>${fmt(e.negociado)}</b> <em>${pct(neg)}%</em></span><span><i style="background:${cores[0]}"></i>livre <b>${fmt(livre)}</b> <em>${pct(livre)}%</em></span></div>`;
+    <div class="neg"><span><i style="background:#e8f5ec"></i>negociado <b>${fmt(e.negociado)}</b> <em>${e.negociado > e.sacas ? "acima do estoque" : pct(neg) + "%"}</em></span><span><i style="background:${cores[0]}"></i>livre <b>${fmt(livre)}</b> <em>${pct(livre)}%</em></span></div>`;
   return topo + linhasSub(safras, false);
 }
 function desenharFaixa(v){
@@ -873,15 +875,15 @@ function desenharRH(h){
 /* ---------- MORTES de bovinos no ano (BI Mortes) ---------- */
 function desenharMortes(m){
   if(!m){ setNum("mTotal", null); setNum("mCant", null); return; }
-  $("mAnoL").textContent = "Mortes " + (m.ano || "");
-  setNum("mTotal", m.total);          // coletor já tira o abate para cantina do total
-  setNum("mCant", m.cantina);
-  const hoje = new Date(), dias = Math.ceil((hoje - new Date(hoje.getFullYear(), 0, 1)) / 86400000);
+  // Número grande = mês corrente; ano embaixo. Cantina nunca entra nas mortes (o coletor já separa).
   const nomeMes = mm => ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][+mm.slice(0, 2) - 1];
-  const mes = m.mes;   // {mes:"11/2026", total, cantina}: mês corrente, também sem a cantina
-  $("mRel").innerHTML = (mes ? `<b style="font-size:1.35em">${fmt(mes.total)}</b> em ${nomeMes(mes.mes)} · ` : "")
-    + (m.total && String(m.ano) === String(hoje.getFullYear()) ? `média <b>${fmt1(m.total / dias)}</b>/dia` : "");
-  $("mCantMes").innerHTML = mes ? `<b style="font-size:1.35em">${fmt(mes.cantina)}</b> em ${nomeMes(mes.mes)} · fora das mortes` : "abates, fora das mortes";
+  const mes = m.mes;   // {mes:"11/2026", total, cantina}
+  $("mAnoL").textContent = mes ? "Mortes em " + nomeMes(mes.mes) : "Mortes " + (m.ano || "");
+  setNum("mTotal", mes ? mes.total : m.total);
+  setNum("mCant", mes ? mes.cantina : m.cantina);
+  $("mRel").innerHTML = mes ? `no ano ${m.ano}: <b>${fmt(m.total)}</b>` : "";
+  $("mCantLbl").textContent = mes ? "Cantina em " + nomeMes(mes.mes) : "Cantina " + (m.ano || "");
+  $("mCantMes").innerHTML = mes ? `no ano: <b>${fmt(m.cantina)}</b> · fora das mortes` : "abates, fora das mortes";
   barras($("mMotivos"), (m.motivos || []).map(x => ({ nome: x.motivo.split(" - ")[0], rotulo: fmt(x.qtd), partes: [{ v: x.qtd, cor: "var(--bad)" }] })));
   barras($("mFaz"), [...(m.fazendas || [])].sort((a, b) => ordemFaz(a.fazenda) - ordemFaz(b.fazenda))
     .map(f => ({ nome: f.fazenda, rotulo: fmt(f.mortes), partes: [{ v: f.mortes, cor: "#ff7a7a" }] })));
