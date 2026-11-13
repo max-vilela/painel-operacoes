@@ -214,6 +214,16 @@ def graos_contratos(page, esperar):
             fazenda=titulo(re.sub(r"^\d+\s*-\s*", "", filial).replace("(MATRIZ)", "").strip()),
             contratadoSacas=round(num(qtd) / 60), entregueSacas=round(num(saida) / 60)))
     out = []
+    # Saldo a entregar (contratado - entregue) de TODAS as safras: é a parte do estoque que já está vendida.
+    # Safra do contrato "2025/2026" vira "25/26", o mesmo formato do BI Estoque.
+    saldo = {}
+    for g, itens in por_grupo.items():
+        for i in itens:
+            m = re.fullmatch(r"\s*\d{2}(\d{2})\s*/\s*\d{2}(\d{2})\s*", i["safra"])
+            s = f"{m.group(1)}/{m.group(2)}" if m else i["safra"]
+            d = saldo.setdefault(g.lower(), {}).setdefault(s, 0)
+            saldo[g.lower()][s] = d + max(0, i["contratadoSacas"] - i["entregueSacas"])
+    graos_contratos.saldo_por_safra = saldo
     for g in ("Soja", "Milho"):
         itens = por_grupo.get(g)
         if not itens:
@@ -503,6 +513,111 @@ def filtrar_motivo(page, motivo):
     page.wait_for_timeout(3000)
 
 
+MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto",
+         "setembro", "outubro", "novembro", "dezembro"]
+
+
+_IDX_PERIODO = None   # posição do slicer PERIODO na página (achada pela 1ª vez pelo valor = ano)
+
+
+def _periodo_abrir(page):
+    """Abre o dropdown PERIODO e devolve (frame, função item(texto)).
+    Acha o slicer pelo valor exibido (um ano) e guarda a posição: depois de mexer ele pode mostrar 'Todos'."""
+    global _IDX_PERIODO
+    fr = frame_relatorio(page)
+    caixas = fr.locator(".slicer-container")
+    if _IDX_PERIODO is None:
+        for k in range(caixas.count()):
+            if re.fullmatch(r"\d{4}", caixas.nth(k).inner_text().strip()):
+                _IDX_PERIODO = k; break
+    if _IDX_PERIODO is None:
+        raise RuntimeError("filtro PERIODO não encontrado")
+    caixas.nth(_IDX_PERIODO).locator(".slicer-dropdown-menu, .slicer-restatement, .dropdown-chevron").first.click()
+    page.wait_for_timeout(1500)
+
+    def item(txt):
+        """Item do dropdown; rola a lista (virtualizada) até ele aparecer."""
+        for _ in range(15):
+            loc = fr.locator(".slicerItemContainer").filter(has_text=re.compile(r"^\s*" + re.escape(txt) + r"\s*$"))
+            if loc.count() and loc.first.bounding_box():
+                return loc.first
+            # rola o contêiner rolável da lista (ancestral com scrollHeight > clientHeight)
+            rolou = fr.locator(".slicerItemContainer").first.evaluate("""el => {
+                for (let p = el.parentElement; p; p = p.parentElement)
+                    if (p.scrollHeight > p.clientHeight + 4) { const a = p.scrollTop; p.scrollTop += 120; return p.scrollTop !== a; }
+                return false; }""")
+            page.wait_for_timeout(600)
+            if not rolou:
+                break
+        raise RuntimeError("item não encontrado no PERIODO: " + txt)
+    return fr, item
+
+
+def _periodo_fechar(page):
+    page.keyboard.press("Escape")
+    page.mouse.click(1590, 170)
+    page.wait_for_timeout(3000)
+
+
+def _marcado(loc):
+    return "selected" in (loc.locator(".slicerCheckbox").first.get_attribute("class") or "")
+
+
+def mortes_do_mes(page, esperar, hoje):
+    """Mortes e abate p/ cantina do mês corrente: PERIODO = só o mês; lê; volta PERIODO = ano inteiro.
+    Devolve {"mes": "11/2026", "total": n_sem_cantina, "cantina": n} ou None se não conseguir (e avisa)."""
+    ano, mes = str(hoje.year), MESES[hoje.month - 1]
+    out = None
+    # total do ano antes de filtrar: o do mês tem que ser menor (senão o filtro não pegou)
+    total_ano_visto = [int(num(valor_do_filtro([p.strip() for p in frame_relatorio(page).inner_text("body").split("\n") if p.strip()],
+                                               "Total de Mortes") or "0")) or 10**9]
+    try:
+        fr, item = _periodo_abrir(page)
+        a = item(ano)
+        if a.get_attribute("aria-expanded") == "false":
+            a.locator(".expandButton, [class*=expand]").first.click(); page.wait_for_timeout(1200)
+        if _marcado(a):
+            a.click(); page.wait_for_timeout(1500)          # desmarca o ano inteiro
+        m = item(mes)
+        if not _marcado(m):
+            m.click(); page.wait_for_timeout(1500)          # marca só o mês
+        _periodo_fechar(page); esperar(page)
+        fr = frame_relatorio(page)
+        partes = [p.strip() for p in fr.inner_text("body").split("\n") if p.strip()]
+        # com hierarquia o BI escreve o filtro como "2026 (Ano) + novembro (Mês)"
+        rotulo = fr.locator(".slicer-container").nth(_IDX_PERIODO).inner_text().strip()
+        tot = int(num(valor_do_filtro(partes, "Total de Mortes")))
+        if mes in rotulo.lower() and tot < total_ano_visto[0]:
+            cant = sum(int(num(q)) for mm, q, _ in linhas_visiveis(fr, 3) if mm.strip().upper() == CANTINA)
+            out = {"mes": f"{hoje.month:02d}/{hoje.year}", "total": tot - cant, "cantina": cant}
+        else:
+            print("  AVISO mortes do mês: o filtro não ficou só no mês; ignorado. Slicers:",
+                  [fr.locator(".slicer-container").nth(k).inner_text().strip() for k in range(fr.locator(".slicer-container").count())])
+            page.screenshot(path=str(Path(__file__).parent / "dump" / "mortes_mes_falha.png"))
+    except Exception as e:
+        print("  AVISO mortes do mês:", e)
+    finally:
+        # devolve PERIODO = ano inteiro (como o BI estava)
+        try:
+            fr, item = _periodo_abrir(page)
+            a = item(ano)
+            if a.get_attribute("aria-expanded") == "false":
+                a.locator(".expandButton, [class*=expand]").first.click(); page.wait_for_timeout(1200)
+            m = item(mes)
+            if _marcado(m) and not _marcado(a):
+                m.click(); page.wait_for_timeout(1500)
+            a = item(ano)
+            if not _marcado(a):
+                a.click(); page.wait_for_timeout(1500)
+            _periodo_fechar(page); esperar(page)
+            volta = valor_do_filtro([p.strip() for p in frame_relatorio(page).inner_text("body").split("\n") if p.strip()], "PERIODO")
+            if volta != ano:
+                print("  AVISO: PERIODO do BI Mortes ficou em", volta)
+        except Exception as e:
+            print("  AVISO: não consegui devolver o PERIODO do BI Mortes:", e)
+    return out
+
+
 def mortes(page, esperar):
     """Página 'Mortes' do BI Mortes (filtro PERIODO = ano corrente).
     Abate para cantina NÃO é morte para o painel: sai do total, dos motivos e das barras por fazenda e vira
@@ -534,7 +649,7 @@ def mortes(page, esperar):
                       key=lambda x: -x["mortes"])
     motivos = [{"motivo": m.capitalize(), "qtd": q} for m, q in motivos_todos if m != CANTINA][:5]
     return {"ano": ano, "total": total - cantina, "cantina": cantina, "cantinaSeparada": bool(cant_faz) or not cantina,
-            "fazendas": fazendas, "motivos": motivos}
+            "fazendas": fazendas, "motivos": motivos, "mes": mortes_do_mes(page, esperar, date.today())}
 
 
 def visao_geral(page, url_relatorio, esperar, esta_logado):
@@ -566,6 +681,13 @@ def visao_geral(page, url_relatorio, esperar, esta_logado):
     return v
 
 
+def negociado_no_estoque(visao, saldo):
+    """Negociado de cada produto = saldo a entregar de TODOS os contratos abertos (qualquer safra).
+    Decisão do usuário (13/11/2026): total do produto, sem casar safra do contrato com safra do estoque."""
+    for prod, e in (visao.get("estoqueGraos") or {}).items():
+        e["negociado"] = sum(saldo.get(prod, {}).values())
+
+
 def coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado):
     page.goto(url_relatorio("venda_bovinos"), wait_until="domcontentloaded")
     if not esta_logado(page):
@@ -585,5 +707,6 @@ def coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado):
     acompanhar_saidas(graos, date.today())
     print("graos:", [(g["produto"], g["safra"], g["contratadoSacas"], g["entregueSacas"], len(g["contratos"])) for g in graos])
     visao = visao_geral(page, url_relatorio, esperar_relatorio, esta_logado)
+    negociado_no_estoque(visao, getattr(graos_contratos, "saldo_por_safra", {}))
     print("visao:", visao)
     return {"bovinos": {"cronograma": cron, "mes": mes}, "graos": graos, "visao": visao}

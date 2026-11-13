@@ -273,6 +273,12 @@
   .ind .cr b{color:var(--text);font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
   .ind .cr b small{font-size:.8em;color:var(--muted);font-weight:400}
   .ind .cr em{font-style:normal;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+  .ind .neg{display:flex;justify-content:space-between;gap:.6vw;font-size:calc(1.5*var(--u));color:var(--muted);margin-bottom:.4vh}
+  .ind .neg span{white-space:nowrap}
+  .ind .neg i{display:inline-block;width:1.1vh;height:1.1vh;border-radius:.25vh;margin-right:.4vw;vertical-align:middle}
+  .ind .neg b{color:var(--text)} .ind .neg em{font-style:normal}
+  .ind .cr em[title]{font-size:.85em;white-space:nowrap}
+  .ind .cr{grid-template-columns:1.1vh 1fr auto 4.2vw}
   .ind .mini{height:.8vh;background:#0a1c14;border:1px solid var(--line);border-radius:1vh;overflow:hidden;margin-top:.3vh}
   .ind .mini i{display:block;height:100%;background:var(--c,var(--accent));transition:width .9s cubic-bezier(.2,.7,.2,1)}
   .ind.vazio .v{color:var(--muted)}
@@ -313,7 +319,7 @@
       <div class="slide" id="sMortes" data-titulo="Mortes de bovinos" data-ico="alerta">
         <div class="big3" style="grid-template-columns:1fr 1fr 2fr">
           <div class="kpi"><div class="l"><i class="ico" data-i="alerta"></i><span id="mAnoL">Mortes no ano</span></div><div class="v" id="mTotal" style="color:var(--bad)">–</div><div class="a" id="mRel"></div></div>
-          <div class="kpi"><div class="l"><i class="ico" data-i="cantina"></i>Cantina</div><div class="v" id="mCant">–</div><div class="a">abates, fora das mortes</div></div>
+          <div class="kpi"><div class="l"><i class="ico" data-i="cantina"></i>Cantina</div><div class="v" id="mCant">–</div><div class="a" id="mCantMes">abates, fora das mortes</div></div>
           <div class="kpi"><div class="l"><i class="ico" data-i="lista"></i>Principais causas</div><div class="hb mini3" id="mMotivos"></div></div>
         </div>
         <h3><span><i class="ico" data-i="pino"></i>Por fazenda</span> <small id="mNota"></small></h3>
@@ -775,6 +781,17 @@ function linhasSub(itens, comp = true){
   const barra = comp ? `<div class="cb">${itens.map(([, q, , cor]) => `<i style="width:${q / tot * 100}%;background:${cor}"></i>`).join("")}</div>` : "";
   return barra + itens.map(([n, q, u, cor]) => `<div class="cr"><i style="background:${cor}"></i><span>${n}</span><b>${fmt(q)} <small>${u}</small></b>${comp ? `<em>${Math.round(q / tot * 100)}%</em>` : ""}</div>`).join("");
 }
+// Estoque de grãos: barra = estoque inteiro, parte já negociada (saldo a entregar dos contratos abertos
+// do produto, qualquer safra) e parte livre. Embaixo, as safras em estoque com a participação de cada uma.
+function linhasGrao(e, cores){
+  const safras = e.porSafra.map((s, i) => ["Safra " + s.safra, s.sacas, "sc", cores[Math.min(i, 2)]]);
+  if(e.negociado == null) return linhasSub(safras);
+  const neg = Math.min(e.negociado, e.sacas), livre = e.sacas - neg;
+  const pct = q => Math.round(q / (e.sacas || 1) * 100);
+  const topo = `<div class="cb"><i style="width:${neg / e.sacas * 100}%;background:#e8f5ec"></i><i style="width:${livre / e.sacas * 100}%;background:${cores[0]}"></i></div>
+    <div class="neg"><span><i style="background:#e8f5ec"></i>negociado <b>${fmt(e.negociado)}</b> <em>${pct(neg)}%</em></span><span><i style="background:${cores[0]}"></i>livre <b>${fmt(livre)}</b> <em>${pct(livre)}%</em></span></div>`;
+  return topo + linhasSub(safras, false);
+}
 function desenharFaixa(v){
   v = v || {};
   const r = v.rebanho;
@@ -784,7 +801,7 @@ function desenharFaixa(v){
   const tons = { soja: ["#35d07f", "#1f8f5a", "#14583a"], milho: ["#f2b33d", "#b07d1f", "#6e4e12"] };
   for(const [id, chave] of [["iSoja", "soja"], ["iMilho", "milho"]]){
     const e = v.estoqueGraos && v.estoqueGraos[chave];
-    cartao(id, e && e.sacas, "sc", e ? linhasSub(e.porSafra.map((s, i) => ["Safra " + s.safra, s.sacas, "sc", tons[chave][Math.min(i, 2)]])) : "");
+    cartao(id, e && e.sacas, "sc", e ? linhasGrao(e, tons[chave]) : "");
   }
   const c = v.combustivel;
   cartao("iDiesel", c && c.diesel, "L", c && c.gasolina != null
@@ -860,7 +877,11 @@ function desenharMortes(m){
   setNum("mTotal", m.total);          // coletor já tira o abate para cantina do total
   setNum("mCant", m.cantina);
   const hoje = new Date(), dias = Math.ceil((hoje - new Date(hoje.getFullYear(), 0, 1)) / 86400000);
-  $("mRel").innerHTML = m.total && String(m.ano) === String(hoje.getFullYear()) ? `média de <b>${fmt1(m.total / dias)}</b> por dia` : "";
+  const nomeMes = mm => ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][+mm.slice(0, 2) - 1];
+  const mes = m.mes;   // {mes:"11/2026", total, cantina}: mês corrente, também sem a cantina
+  $("mRel").innerHTML = (mes ? `<b style="font-size:1.35em">${fmt(mes.total)}</b> em ${nomeMes(mes.mes)} · ` : "")
+    + (m.total && String(m.ano) === String(hoje.getFullYear()) ? `média <b>${fmt1(m.total / dias)}</b>/dia` : "");
+  $("mCantMes").innerHTML = mes ? `<b style="font-size:1.35em">${fmt(mes.cantina)}</b> em ${nomeMes(mes.mes)} · fora das mortes` : "abates, fora das mortes";
   barras($("mMotivos"), (m.motivos || []).map(x => ({ nome: x.motivo.split(" - ")[0], rotulo: fmt(x.qtd), partes: [{ v: x.qtd, cor: "var(--bad)" }] })));
   barras($("mFaz"), [...(m.fazendas || [])].sort((a, b) => ordemFaz(a.fazenda) - ordemFaz(b.fazenda))
     .map(f => ({ nome: f.fazenda, rotulo: fmt(f.mortes), partes: [{ v: f.mortes, cor: "#ff7a7a" }] })));
