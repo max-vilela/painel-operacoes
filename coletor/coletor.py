@@ -187,7 +187,35 @@ def main():
     d.set_defaults(f=cmd_dump)
     sub.add_parser("coletar").set_defaults(f=cmd_coletar)
     args = ap.parse_args()
+    if args.cmd == "coletar":
+        registrar_em_arquivo()
     args.f(args)
+
+
+class _Tee:
+    """Escreve no console (se houver) e no arquivo de log ao mesmo tempo."""
+    def __init__(self, *saidas):
+        self.saidas = [s for s in saidas if s]
+    def write(self, txt):
+        for s in self.saidas:
+            try:
+                s.write(txt); s.flush()
+            except Exception:
+                pass
+    def flush(self):
+        for s in self.saidas:
+            try:
+                s.flush()
+            except Exception:
+                pass
+
+
+def registrar_em_arquivo():
+    """A tarefa agendada roda sem ninguém olhando: guarda a saída (e erros) em coletor/ultima_coleta.log."""
+    log = open(AQUI / "ultima_coleta.log", "w", encoding="utf-8")
+    log.write(f"início {datetime.now():%d/%m/%Y %H:%M:%S}\n")
+    sys.stdout = _Tee(sys.__stdout__, log)
+    sys.stderr = _Tee(sys.__stderr__, log)
 
 
 if __name__ == "__main__":

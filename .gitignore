@@ -7,3 +7,5 @@ coletor/estado.json
 .claude/
 coletor/destino.txt
 __pycache__/
+coletor/ultima_coleta.log
+coletor/tarefa_saida.log
