@@ -81,7 +81,7 @@ window.DADOS = {
   },
 
   avisos: [
-    "Bovinos e grãos: lidos dos BIs às 7h e 13h (quantidades, sem valores).",
+    "Bovinos e grãos: lidos dos BIs às 8h30 e 13h (quantidades, sem valores).",
     "Cotações: Agrolink (Diamantino, Sapezal) e Imea (média das praças de MT). Chuva: estimativa por modelo."
   ]
 };

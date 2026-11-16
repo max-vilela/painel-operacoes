@@ -26,7 +26,7 @@ python cotacoes.py           # lê as cotações e grava ../mercado.js
 
 - O portal só aceita **uma sessão por conta**: cada coleta derruba quem estiver logado com o mesmo usuário.
 - Feche qualquer Chrome do perfil antes de rodar (senão o Chrome sai com código 21).
-- Agendamento no Windows: coletor às 7h e 13h; cotações às 8h30, 12h30 e 17h30.
+- Agendamento no Windows: coletor às 8h30 e 13h; cotações às 8h30, 12h30 e 17h30.
 
 ## Fontes
 Radar: Windy (embed). Chuva estimada: Open-Meteo. Dólar: AwesomeAPI. Cotações: Agrolink (Diamantino, Sapezal) e Imea via Notícias Agrícolas (MT = média das praças).

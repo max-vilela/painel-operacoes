@@ -373,25 +373,30 @@ def estoques(page, esperar):
     return out
 
 
-def filtrar_dropdown(page, campo, valor):
+def filtrar_dropdown(page, campo, valor, tentativas=3):
     """Slicer de lista suspensa com busca (seleção única): escolhe só `valor`.
     `campo` = nome do campo do slicer (aparece no textContent dele, ex.: 'Grupo de Produto').
-    Devolve False se o valor não existir na lista."""
-    fr = frame_relatorio(page)
-    caixa = fr.locator(".slicer-container").filter(has_text=campo).first
-    caixa.locator(".slicer-dropdown-menu, .slicer-restatement, .dropdown-chevron").first.click()
-    page.wait_for_timeout(1200)
-    busca = fr.locator("input.searchInput:visible, .searchHeader input:visible").first
-    if busca.count():
-        busca.click(); page.keyboard.press("Control+A"); page.keyboard.type(valor, delay=40); page.wait_for_timeout(1500)
-    item = fr.locator(".slicerItemContainer:visible").filter(has_text=re.compile(r"^\s*" + re.escape(valor) + r"\s*$")).first
-    achou = item.count() > 0
-    if achou and not _marcado(item):
-        item.click(); page.wait_for_timeout(1500)
-    page.keyboard.press("Escape")
-    page.mouse.click(1590, 170)
-    page.wait_for_timeout(2500)
-    return achou
+    A lista às vezes demora a refazer a busca: tenta de novo, esperando mais a cada vez.
+    Devolve False se o valor não aparecer em nenhuma tentativa."""
+    for n in range(tentativas):
+        fr = frame_relatorio(page)
+        caixa = fr.locator(".slicer-container").filter(has_text=campo).first
+        caixa.locator(".slicer-dropdown-menu, .slicer-restatement, .dropdown-chevron").first.click()
+        page.wait_for_timeout(1200 + 800 * n)
+        busca = fr.locator("input.searchInput:visible, .searchHeader input:visible").first
+        if busca.count():
+            busca.click(); page.keyboard.press("Control+A"); page.keyboard.press("Backspace")
+            page.keyboard.type(valor, delay=40); page.wait_for_timeout(1500 + 1500 * n)
+        item = fr.locator(".slicerItemContainer:visible").filter(has_text=re.compile(r"^\s*" + re.escape(valor) + r"\s*$")).first
+        achou = item.count() > 0
+        if achou and not _marcado(item):
+            item.click(); page.wait_for_timeout(1500)
+        page.keyboard.press("Escape")
+        page.mouse.click(1590, 170)
+        page.wait_for_timeout(2500)
+        if achou:
+            return True
+    return False
 
 
 def ger_estoque(page, esperar):
@@ -439,7 +444,7 @@ def ger_estoque(page, esperar):
     comb = {}
     for chave, grupo in (("diesel", "OLEO DIESEL"), ("gasolina", "GASOLINA"), ("etanol", "ETANOL")):
         if not filtrar_dropdown(page, "Grupo de Produto", grupo):
-            print("  aviso estoque: grupo não encontrado:", grupo); continue
+            print("  AVISO estoque: grupo não encontrado:", grupo); continue
         esperar(page)
         comb[chave] = round(sum(num(l[4]) for l in ler_tabela(page, 11)))   # saldo (L) na 5ª coluna
     out["combustivel"] = comb

@@ -12,6 +12,7 @@ O perfil fica em coletor/perfil (cookies de login): não copie, não versione, n
 """
 import argparse
 import json
+import re
 import sys
 import time
 from datetime import datetime
@@ -58,6 +59,42 @@ def url_relatorio(nome, pagina=None):
 
 def esta_logado(page):
     return "/identity/login" not in page.url.lower()
+
+
+def garantir_login(page, timeout_s=90):
+    """Se o portal estiver na tela de login, entra sozinho pela conta Microsoft que o perfil já conhece:
+    'Autenticação Microsoft' -> escolhe a conta marcada como 'Entrou' -> 'Manter conectado? Sim'.
+    Não digita senha: se a Microsoft pedir senha/MFA, desiste e devolve False (aí: python coletor.py login).
+    O portal só aceita 1 sessão por conta: relogar aqui derruba a sessão de quem estiver usando a mesma conta."""
+    page.goto(PORTAL, wait_until="domcontentloaded")
+    page.wait_for_timeout(3000)
+    if esta_logado(page) and "login.microsoftonline" not in page.url:
+        return True
+    print("sessão caiu; entrando de novo pela conta Microsoft...")
+    try:
+        page.get_by_text("Autenticação Microsoft").first.click()
+    except Exception:
+        return False
+    fim = time.time() + timeout_s
+    while time.time() < fim:
+        page.wait_for_timeout(2000)
+        url = page.url.lower()
+        if "bi.livioeoutro.com.br" in url and "/identity/login" not in url:
+            print("login refeito")
+            return True
+        if "login.microsoftonline" in url or "login.live" in url:
+            if page.locator("input[type=password]:visible").count():
+                print("a Microsoft pediu senha: rode python coletor.py login")
+                return False
+            for alvo in (page.get_by_text("Entrou").first,                       # conta já conectada
+                         page.locator("#idSIButton9:visible").first,              # 'Sim' em 'Manter conectado?'
+                         page.get_by_role("button", name=re.compile(r"^(Sim|Yes)$")).first):
+                try:
+                    if alvo.count() and alvo.is_visible():
+                        alvo.click(); break
+                except Exception:
+                    pass
+    return False
 
 
 def esperar_relatorio(page, timeout_s=120):
@@ -126,6 +163,8 @@ def cmd_coletar(_):
     with sync_playwright() as p:
         ctx = abrir(p, headless=True)
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
+        if not garantir_login(page):
+            sys.exit("Sem login e não deu para entrar sozinho. Rode: python coletor.py login")
         dados = coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado)
         ctx.close()
     dados["atualizadoEm"] = datetime.now().astimezone().isoformat(timespec="seconds")
