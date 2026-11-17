@@ -762,6 +762,7 @@ def visao_geral(page, url_relatorio, esperar, esta_logado):
             if not esta_logado(page):
                 raise SystemExit("Sem login: rode python coletor.py login")
             esperar(page)
+            atualizar_relatorio(page, esperar)
             func()
         except SystemExit:
             raise
@@ -777,11 +778,24 @@ def negociado_no_estoque(visao, saldo):
         e["negociado"] = sum(saldo.get(prod, {}).values())
 
 
+def atualizar_relatorio(page, esperar):
+    """Clica em 'Atualizar' do portal (refaz as consultas do relatório ao conjunto de dados) antes de ler.
+    Mantém os filtros (testado em 17/11/2026). Não força a atualização do Protheus -> Power BI, que é
+    agendada no serviço. Se o botão não existir ou falhar, segue sem atualizar (só avisa)."""
+    try:
+        page.get_by_text("Atualizar", exact=True).first.click(timeout=8000)
+        page.wait_for_timeout(3000)
+        esperar(page)
+    except Exception as e:
+        print("  AVISO: não consegui clicar em Atualizar:", str(e)[:80])
+
+
 def coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado):
     page.goto(url_relatorio("venda_bovinos"), wait_until="domcontentloaded")
     if not esta_logado(page):
         raise SystemExit("Sem login: rode python coletor.py login")
     esperar_relatorio(page)
+    atualizar_relatorio(page, esperar_relatorio)
     cron, mes = bovinos_cronograma(page, esperar_relatorio, date.today())
     print("cronograma:", cron)
     abat = bovinos_abatidos_mes(page, esperar_relatorio, date.today())
@@ -792,6 +806,7 @@ def coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado):
     if not esta_logado(page):
         raise SystemExit("Sem login: rode python coletor.py login")
     esperar_relatorio(page)
+    atualizar_relatorio(page, esperar_relatorio)
     graos = graos_contratos(page, esperar_relatorio)
     acompanhar_saidas(graos, date.today())
     print("graos:", [(g["produto"], g["safra"], g["contratadoSacas"], g["entregueSacas"], len(g["contratos"])) for g in graos])
