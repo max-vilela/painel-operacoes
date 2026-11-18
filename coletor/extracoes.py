@@ -866,13 +866,15 @@ def visao_geral(page, url_relatorio, esperar, esta_logado):
                 v["rh"]["retornosCG"], v["rh"]["entramCG"] = f["retornos"], f["entram"]
         except Exception as e:
             print("  AVISO férias CG:", e)
+    from compras import compras
     from safras import colheita_da_cultura, plantio_por_cultura   # escolhe sozinho a safra mais recente de cada cultura
     for nome, func in [("ger_estoque", lambda: v.update(ger_estoque(page, esperar))),
                        ("rh", rh),
                        ("plantio", lambda: v.__setitem__("plantio", plantio_por_cultura(page, esperar))),
                        ("colheita_soja", lambda: v.setdefault("colheita", {}).__setitem__("soja", colheita_da_cultura(page, esperar, "SOJA"))),
                        ("colheita_milho", lambda: v.setdefault("colheita", {}).__setitem__("milho", colheita_da_cultura(page, esperar, "MILHO"))),
-                       ("mortes", lambda: (abrir_pagina(page, "Mortes", esperar), v.__setitem__("mortes", mortes(page, esperar))))]:
+                       ("mortes", lambda: (abrir_pagina(page, "Mortes", esperar), v.__setitem__("mortes", mortes(page, esperar)))),
+                       ("compras", lambda: v.__setitem__("compras", compras(page, esperar)))]:
         try:
             page.goto(url_relatorio(nome), wait_until="domcontentloaded")
             if not esta_logado(page):

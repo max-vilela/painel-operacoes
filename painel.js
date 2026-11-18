@@ -20,6 +20,7 @@ const CFG = {
   radarZoom: 7,            // zoom do mapa (inteiro). 7 = todas as fazendas; 8 aproxima mais
   ordemFazendas: ["Tucano", "Java", "Ponte de Pedra", "Promissão", "Galheiro", "Panamá", "Mato Grosso"],   // ordem dos cartões de chuva
   dolarMin: 15,       // cotação do dólar (AwesomeAPI, pública); se falhar, mantém o último valor e fica laranja
+  compraResiduoPct: 5,   // pedido com saldo <= X% do total é 'resíduo': candidato a ser zerado manualmente (aba Compras)
   fonteChuva: "openmeteo"  // "openmeteo" = estimativa por modelo (sempre atual) | "dlavro" = medida do BI (atrasada)
 };
 
@@ -324,6 +325,8 @@ function proximoSlide(){
   slides.forEach(x => { if(x !== s && x !== ant) x.classList.remove("on", "sai"); });
   if(ant && ant !== s){ ant.classList.remove("on"); ant.classList.add("sai"); setTimeout(() => ant.classList.remove("sai"), 650); }
   s.classList.add("on");
+  document.querySelector(".app").classList.toggle("largo", !!s.dataset.largo);   // abas largas (compras) espremem o radar
+  if(mapa) setTimeout(() => mapa.invalidateSize(), 80);
   setTextoSuave($("carTitulo"), s.dataset.titulo);
   atualizarIdade();
   $("carIco").innerHTML = svgIcone(s.dataset.ico);
@@ -354,9 +357,9 @@ function textoIdade(iso){
 }
 // De que fonte vem cada assunto do carrossel (a idade mostrada é a da fonte MAIS ANTIGA do assunto)
 const FONTE_ABA = { sBov: ["bovinos"], sMortes: ["mortes"], sGraos: ["graos"], sPlant: ["plantio", "colheita"],
-                    sEst: ["estoque", "graos"], sRH: ["rh"] };
+                    sEst: ["estoque", "graos"], sCompras: ["compras"], sRH: ["rh"] };
 const ROTULO_FONTE = { bovinos: "bovinos", graos: "grãos", estoque: "estoques", rh: "funcionários", plantio: "plantio",
-                       colheita: "colheita", mortes: "mortes", mercado: "cotações" };
+                       colheita: "colheita", mortes: "mortes", compras: "compras", mercado: "cotações" };
 function atualizarIdade(){
   const el = $("idade"), aba = slides[slideAtual], d = window.DADOS;
   if(!el || !aba || !d) return;
@@ -483,6 +486,7 @@ function desenharFaixa(v){
   desenharPlantio(v.plantio, v.colheita || {});
   desenharRH(v.rh);
   desenharMortes(v.mortes);
+  desenharCompras(v.compras);
 }
 
 const fmt1 = n => n.toLocaleString("pt-BR", { minimumFractionDigits:1, maximumFractionDigits:1 });
@@ -635,3 +639,41 @@ renderRadar();
 buscarModelo();
 buscarDolar();
 carregarDados();
+
+
+/* ---------- COMPRAS: pedidos com saldo a receber, dos produtos acompanhados ---------- */
+// Cada produto vira um cartão; dentro dele, os pedidos que ainda têm saldo, do mais perto de acabar para o mais cheio.
+// Cor da barra = quanto do pedido ainda falta chegar: até 20% vermelho, até 50% amarelo, acima verde.
+const CATEGORIAS_COMPRAS = ["Calcário dolomítico", "Gesso agrícola", "Gesso p/ nutrição animal", "Caroço de algodão", "Casquinha de algodão",
+  "Farelo de algodão", "Farelo de soja", "DDG ouro", "DDG úmido", "DDG ALD", "Núcleo mineral", "Sementes", "Fertilizantes", "Óleo vegetal (adjuvante)"];
+const UNID_COMPRAS = { "Óleo vegetal (adjuvante)": "L" };       // o resto vem em kg
+const MAX_PEDIDOS_CARTAO = 4;
+function qtdCompras(n, cat){      // quantidade em kg inteiros (ou L), sem converter para toneladas
+  return fmt(Math.round(n)) + " " + (UNID_COMPRAS[cat] || "kg");
+}
+const nomeProduto = n => n.toLowerCase().split(" ").map(w => /\d/.test(w) || (w.length <= 3 && !["de", "do", "da", "e", "c", "p", "com"].includes(w)) ? w.toUpperCase() : w.length > 2 ? w[0].toUpperCase() + w.slice(1) : w).join(" ");
+const reais = n => "R$ " + fmt(Math.round(n));
+function desenharCompras(lista){
+  const el = $("cpGrid"); if(!el) return;
+  if(!Array.isArray(lista)){ setHtmlSuave(el, '<div class="nota">sem leitura</div>'); return; }
+  const curto = f => f.replace(/(ltda|s\/a|sa|ind|industria|comercio|de|do|da|e)\.?/gi, " ").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ");
+  const porCat = {};
+  lista.forEach(p => { p.pct = p.quantidade ? p.saldo / p.quantidade * 100 : 100; (porCat[p.categoria] = porCat[p.categoria] || []).push(p); });
+  const nRes = c => porCat[c].filter(p => p.pct <= CFG.compraResiduoPct).length;
+  const cats = Object.keys(porCat).sort((a, b) => (nRes(b) > 0) - (nRes(a) > 0) || Math.min(...porCat[a].map(p => p.pct)) - Math.min(...porCat[b].map(p => p.pct)));
+  const cartao = cat => {
+    const ps = porCat[cat].sort((a, b) => a.pct - b.pct), extra = ps.length - MAX_PEDIDOS_CARTAO;
+    const linhas = ps.slice(0, MAX_PEDIDOS_CARTAO).map(p => {
+      const res = p.pct <= CFG.compraResiduoPct;                 // resíduo: sobrou pouco, dá para zerar o pedido
+      const cor = res ? "#59c3ff" : p.pct <= 20 ? "var(--bad)" : p.pct <= 50 ? "var(--warn)" : "var(--accent)";
+      return `<div class="cpl${res ? " res" : ""}" title="${p.produto} · ${p.fornecedor} · pedido ${p.pedido}">
+        <div class="cp1"><span class="cpf">${p.fazenda}</span><span class="cpn"><b>${nomeProduto(p.produto)}</b><small> · ${curto(p.fornecedor)} · ${p.emissao.slice(0, 5)}</small></span></div>
+        <div class="cp2"><div class="pt"><i style="width:${Math.max(2, Math.min(100, p.pct))}%;background:${cor}"></i></div>
+        <b style="color:${cor}">${qtdCompras(p.saldo, cat)}<small> / ${fmt(Math.round(p.quantidade))}</small></b>
+        <span class="cpv">${p.valorSaldo != null ? reais(p.valorSaldo) : "–"}</span></div></div>`;
+    }).join("");
+    const r = nRes(cat);
+    return `<section class="cpc"><h4>${cat}${r ? `<span class="cpz">${r} p/ zerar</span>` : ""}</h4>${linhas}${extra > 0 ? `<div class="cpx">+${extra} pedido${extra > 1 ? "s" : ""} com saldo</div>` : ""}</section>`;
+  };
+  setHtmlSuave(el, cats.map(cartao).join("") || '<div class="nota">nenhum pedido com saldo</div>');
+}

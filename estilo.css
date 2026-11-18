@@ -10,7 +10,8 @@
     font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden}
   .app{display:grid;height:100vh;padding:1vh 1vw;gap:1vh 1vw;
     grid-template-rows:6vh 1fr minmax(14.4vh,auto) 4.8vh;
-    grid-template-columns:54fr 46fr}
+    grid-template-columns:54fr 46fr;transition:grid-template-columns .5s}
+  .app.largo{grid-template-columns:24fr 76fr}
   header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
     border:1px solid var(--line);background:var(--panel);padding:0 1.2vw;border-radius:.6vh}
   header h1{font-size:calc(2.69*var(--u));letter-spacing:.25em;text-transform:uppercase;color:var(--accent)}
@@ -299,5 +300,20 @@
   .ret span{font-size:calc(1.65*var(--u));color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ret b{font-size:calc(1.75*var(--u));font-variant-numeric:tabular-nums} .retc:first-child .ret b{color:var(--accent2)} .retc:last-child .ret b{color:#59c3ff}
   .ret.vazio span{color:var(--muted);font-size:calc(1.4*var(--u))}
-  /* estoques: 4 cartões em 2 colunas */
-    display:flex;flex-direction:column;justify-content:center;gap:.5vh;min-width:0;position:relative;overflow:hidden}
+
+  /* ---- Compras: cartões por produto, pedidos com saldo ---- */
+  .cpGrid{display:grid;grid-template-columns:1fr 1fr;gap:1.2vh 1vw;align-content:start;flex:1;min-height:0;overflow:hidden}
+  .cpc{background:#0a1c14;border:1px solid var(--line);border-radius:.6vh;padding:.9vh .9vw;display:flex;flex-direction:column;gap:.55vh;min-width:0}
+  .cpc h4{font-size:calc(1.9*var(--u));letter-spacing:.08em;text-transform:uppercase;color:var(--accent2);border-bottom:1px solid var(--line);padding-bottom:.4vh}
+  .cpl{display:flex;flex-direction:column;gap:.25vh;font-size:calc(1.45*var(--u))}
+  .cp1{display:grid;grid-template-columns:5.5vw minmax(0,1fr);gap:.5vw;align-items:baseline}
+  .cp2{display:grid;grid-template-columns:minmax(0,1fr) 11vw 6.5vw;gap:.6vw;align-items:center}
+  .cpn b{color:var(--text);font-weight:600}
+  .cpf{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cpn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .cpn small,.cpl b small{color:var(--muted);font-weight:400}
+  .cpl b{text-align:right;white-space:nowrap}
+  .cpx{font-size:calc(1.4*var(--u));color:var(--muted)}
+  .cpz{float:right;font-size:calc(1.4*var(--u));letter-spacing:.04em;text-transform:none;color:#59c3ff;border:1px solid #59c3ff;border-radius:2vh;padding:0 .6vw}
+  .cpl.res .cpn{color:#59c3ff}
+  .cpv{text-align:right;white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}
+  .cpl.res .cpv{color:#59c3ff}

@@ -39,6 +39,7 @@ RELATORIOS = {
     "plantio": "55cf318b-874c-4c2c-8ed8-a4b901ccd4f9",      # Indicadores de Plantio
     "colheita_soja": "e54486e0-b7ff-4bba-a0a8-c96f3ef61f94",  # Indicadores Colheita Soja
     "colheita_milho": "a48e797b-fd6b-434f-9fa8-c96bd6e3efcc", # Indicadores Colheita Milho
+    "compras": "dbe070ab-7322-4ded-ae7e-1c647798e5a9",       # Compras (pedidos x documento de entrada)
     "mortes": "d61b96ea-a906-4141-9b72-ceccdae57dfa",       # Mortes (página inicial, PERIODO = ano)
 }
 
@@ -178,12 +179,14 @@ def _ok(dados, fonte):
         return bool(c.get("soja")) and bool(c.get("milho"))
     if fonte == "mortes":
         return (v.get("mortes") or {}).get("total") is not None
+    if fonte == "compras":
+        return isinstance(v.get("compras"), list)       # lista vazia é resultado válido (nada com saldo)
     return True
 
 
-FONTES = ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes"]
+FONTES = ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes", "compras"]
 CHAVES_VISAO = {"estoque": ["rebanho", "estoqueGraos", "combustivel"], "rh": ["rh"], "plantio": ["plantio"],
-                "colheita": ["colheita"], "mortes": ["mortes"]}
+                "colheita": ["colheita"], "mortes": ["mortes"], "compras": ["compras"]}
 
 
 def mesclar_com_anterior(dados, agora):
