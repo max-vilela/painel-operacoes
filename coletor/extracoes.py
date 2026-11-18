@@ -36,7 +36,7 @@ def linhas_visiveis(fr, ncols):
     return out
 
 
-def ler_tabela(page, ncols, max_voltas=150, passo=300):
+def ler_tabela(page, ncols, max_voltas=150, passo=300, extrator=None):
     """Tabela virtualizada: rola com o mouse e junta as linhas novas até parar de aparecer."""
     fr = frame_relatorio(page)
     caixa = fr.locator('[role="grid"], [role="table"], .tableEx').first.bounding_box()
@@ -49,7 +49,7 @@ def ler_tabela(page, ncols, max_voltas=150, passo=300):
     parados = 0
     for _ in range(max_voltas):
         novas = 0
-        for l in linhas_visiveis(fr, ncols):
+        for l in (extrator(fr) if extrator else linhas_visiveis(fr, ncols)):
             if l not in vistas:
                 vistas.add(l); ordem.append(l); novas += 1
         parados = parados + 1 if novas == 0 else 0
@@ -197,7 +197,62 @@ def grupo_produto(prod):
     return None
 
 
-def graos_contratos(page, esperar):
+def selecionar_tudo(page, campo):
+    """Slicer em lista suspensa: marca 'Selecionar tudo' (equivale a 'Todos', sem filtro)."""
+    fr = frame_relatorio(page)
+    cx = fr.locator(".slicer-container").filter(has_text=campo).first
+    cx.locator(".slicer-dropdown-menu, .slicer-restatement, .dropdown-chevron").first.click()
+    page.wait_for_timeout(1500)
+    tudo = fr.locator(".slicerItemContainer:visible").filter(has_text=re.compile(r"^\s*Selecionar tudo\s*$")).first
+    if tudo.count() and not _marcado(tudo):
+        tudo.click(); page.wait_for_timeout(2500)
+    page.keyboard.press("Escape"); page.mouse.click(1590, 170); page.wait_for_timeout(3000)
+
+
+def _codigo_filial(txt):
+    m = re.match(r"\s*(\d+)", txt or "")
+    return m.group(1) if m else ""
+
+
+def saidas_romaneios(page, url_relatorio, esperar, esta_logado, max_voltas=25):
+    """Saída acumulada (kg) por contrato lida no BI 'Contratos vs Romaneios' (página 'Todos os Contratos vs Romaneios').
+    Esse BI atualiza antes do 'Contrato de Venda - Grãos' (13-18/11/2026: 480 t já faturadas no 000316 lá e zero no outro).
+    Solta os filtros presos (FILIAL e contrato), ordena pelas pesagens mais recentes e lê as últimas linhas.
+    Devolve {"codFilial|contrato": kg}; vazio se algo falhar (o coletor então fica só com o BI de contratos)."""
+    try:
+        page.goto(url_relatorio("romaneios"), wait_until="domcontentloaded")
+        if not esta_logado(page):
+            return {}
+        esperar(page)
+        atualizar_relatorio(page, esperar)
+        abrir_pagina(page, "Todos os Contratos vs Romaneios", esperar)
+        for campo in ("FILIAL(", "NJJ_CODCTR"):
+            selecionar_tudo(page, campo); esperar(page)
+        cab = frame_relatorio(page).get_by_text("DT HORA PESO 2", exact=True).first
+        for _ in range(3):                 # 1º clique ordena crescente, 2º decresce... confere abaixo
+            cab.click(); page.wait_for_timeout(3000)
+        esperar(page)
+        linhas = ler_tabela(page, 14, max_voltas=max_voltas)
+        d = lambda s: datetime.strptime(s[:10], "%d/%m/%Y") if re.match(r"\d\d/\d\d/\d{4}", s or "") else None
+        datas = [d(l[13]) for l in linhas if d(l[13])]
+        if datas and datas[0] < datas[-1]:
+            print("  AVISO romaneios: ordem crescente; ignorando"); return {}
+        out = {}
+        for l in linhas:
+            try:
+                kg = num(l[9])
+            except Exception:
+                continue
+            k = f"{_codigo_filial(l[0])}|{l[1]}"
+            out[k] = max(out.get(k, 0), kg)
+        print(f"  romaneios: {len(linhas)} linhas, {len(out)} contratos, pesagem mais recente {datas[0].strftime('%d/%m %H:%M') if datas else '?'}")
+        return out
+    except Exception as e:
+        print("  AVISO romaneios:", str(e)[:120])
+        return {}
+
+
+def graos_contratos(page, esperar, rom=None):
     """Página 'Contrato de Venda - Grãos': por contrato, quantidade e saída (kg) -> sacas de 60 kg.
     Colunas: ST CTR DESCRICAO ENT CLIENTE VALOR QUANTIDADE SAIDA SALDO PROD SAFRA VENCIMENTO FILIAL."""
     abrir_pagina(page, "Contrato de Venda - Grãos", esperar)
@@ -209,10 +264,14 @@ def graos_contratos(page, esperar):
         g = grupo_produto(prod)
         if not g or st.strip().upper() == "E":   # E = eliminado (quantidade 0)
             continue
+        kg_saida = num(saida)
+        kg_rom = (rom or {}).get(f"{_codigo_filial(filial)}|{ctr}", 0)
+        if kg_rom > kg_saida:              # o BI de romaneios já tem faturamento que o de contratos ainda não tem
+            kg_saida = kg_rom
         por_grupo.setdefault(g, []).append(dict(
             ctr=ctr, cliente=titulo(cliente), safra=safra, vence=venc,
             fazenda=titulo(re.sub(r"^\d+\s*-\s*", "", filial).replace("(MATRIZ)", "").strip()),
-            contratadoSacas=round(num(qtd) / 60), entregueSacas=round(num(saida) / 60)))
+            contratadoSacas=round(num(qtd) / 60), entregueSacas=round(kg_saida / 60)))
     out = []
     # Saldo a entregar (contratado - entregue) de TODAS as safras: é a parte do estoque que já está vendida.
     # Safra do contrato "2025/2026" vira "25/26", o mesmo formato do BI Estoque.
@@ -449,6 +508,49 @@ def ger_estoque(page, esperar):
         comb[chave] = round(sum(num(l[4]) for l in ler_tabela(page, 11)))   # saldo (L) na 5ª coluna
     out["combustivel"] = comb
     return out
+
+
+def linhas_ferias(fr):
+    """Linhas da tabela 'Controle de Férias' (cada célula vem seguida de 'Formatação Condicional Adicional', que é descartado).
+    Devolve tuplas com os 17 campos após a filial: mat, nome, função, per. aquis., fim aquis., início 1, início 2,
+    d. parc., d. comp., data limite, pagos, saldo, d. lim, status 1, retorno 1, retorno 2, status 2."""
+    out, cur = [], None
+    for x in (p.strip() for p in fr.inner_text("body").split("\n")):
+        if x == "Selecionar Linha":
+            cur = []
+            continue
+        if cur is None or x == "Formatação Condicional Adicional":
+            continue
+        cur.append(x)
+        if len(cur) == 18:
+            if re.fullmatch(r"\d{4,6}", cur[1]):      # matrícula: descarta textos do filtro lidos junto
+                out.append(tuple(cur[1:]))
+            cur = None
+    return out
+
+
+def ferias_retornos_cg(page, esperar, hoje):
+    """Próximos retornos de férias do escritório de Campo Grande (BI RH, página 'Gestão de Ferias').
+    Quem já começou as férias (início <= hoje) e volta em hoje ou depois, do mais próximo ao mais distante.
+    Só nome curto ('Fernanda G.') e datas: nada de matrícula, CPF ou nome completo."""
+    abrir_pagina(page, "Gestão de Ferias", esperar)
+    if not filtrar_dropdown(page, "FILIAL(", "11 - ESC. C. GRANDE"):
+        print("  AVISO férias: filial do escritório de Campo Grande não encontrada"); return None
+    esperar(page)
+    linhas = ler_tabela(page, 18, max_voltas=60, passo=150, extrator=linhas_ferias)
+    d = lambda s: datetime.strptime(s, "%d/%m/%Y").date() if re.fullmatch(r"\d\d/\d\d/\d{4}", s or "") else None
+    ret = []
+    for l in linhas:
+        nome = l[1].split()
+        curto = (nome[0].capitalize() + (" " + nome[1][0].upper() + "." if len(nome) > 1 else "")) if nome else "?"
+        for ini, volta in ((l[5], l[14]), (l[6], l[15])):
+            i, v = d(ini), d(volta)
+            if i and v and i <= hoje <= v:
+                ret.append({"nome": curto, "inicio": i.isoformat(), "retorno": v.isoformat()})
+    ret = [dict(t) for t in {tuple(sorted(r.items())) for r in ret}]            # sem duplicatas
+    ret.sort(key=lambda r: (r["retorno"], r["nome"]))
+    print(f"  férias CG: {len(linhas)} linhas lidas, {len(ret)} em férias")
+    return ret
 
 
 def rh_quadro(page):
@@ -749,6 +851,10 @@ def visao_geral(page, url_relatorio, esperar, esta_logado):
         v["rh"] = rh_quadro(page)
         v["rh"]["exames"] = rh_exames(page)
         v["rh"].update(rh_por_fazenda(page, esperar))
+        try:
+            v["rh"]["retornosCG"] = ferias_retornos_cg(page, esperar, date.today())
+        except Exception as e:
+            print("  AVISO férias CG:", e)
     def plantio_colheita():
         v["plantio"] = plantio(page, esperar)
     for nome, func in [("ger_estoque", lambda: v.update(ger_estoque(page, esperar))),
@@ -802,12 +908,13 @@ def coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado):
     mes["abatidos"], mes["anoAbatidos"] = abat["mes"][0], abat["ano"][0]
     print("abatidos mês:", abat["mes"], "| ano:", abat["ano"])
     print("mes:", mes)
+    rom = saidas_romaneios(page, url_relatorio, esperar_relatorio, esta_logado)
     page.goto(url_relatorio("contrato_graos"), wait_until="domcontentloaded")
     if not esta_logado(page):
         raise SystemExit("Sem login: rode python coletor.py login")
     esperar_relatorio(page)
     atualizar_relatorio(page, esperar_relatorio)
-    graos = graos_contratos(page, esperar_relatorio)
+    graos = graos_contratos(page, esperar_relatorio, rom)
     acompanhar_saidas(graos, date.today())
     print("graos:", [(g["produto"], g["safra"], g["contratadoSacas"], g["entregueSacas"], len(g["contratos"])) for g in graos])
     visao = visao_geral(page, url_relatorio, esperar_relatorio, esta_logado)

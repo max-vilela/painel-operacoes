@@ -143,8 +143,9 @@
   /* ---- carrossel da direita: um assunto por vez, letra grande ---- */
   .car h2 .dots{display:inline-flex;gap:.5vw;margin-left:1vw;vertical-align:middle}
   .car h2 .dots{gap:.25vw}
-  .car h2 .dots i{width:2.4vh;height:2.4vh;border-radius:50%;cursor:pointer;position:relative;display:block}
-  .car h2 .dots i:before{content:"";position:absolute;inset:.6vh;border-radius:50%;background:var(--line);transition:background .4s,transform .2s}
+  .car h2 .dots{position:relative;z-index:6}
+  .car h2 .dots i{width:max(2.4vh,24px);height:max(2.4vh,24px);border-radius:50%;cursor:pointer;position:relative;display:block}
+  .car h2 .dots i:before{content:"";position:absolute;inset:max(.6vh,6px);border-radius:50%;background:var(--line);transition:background .4s,transform .2s}
   .car h2 .dots i:hover:before{background:var(--muted);transform:scale(1.25)}
   .car h2 .dots i.on:before{background:var(--accent)}
   .prog{height:.35vh;background:#0a1c14;border-radius:1vh;overflow:hidden;margin:-.7vh 0 1.4vh}
@@ -165,20 +166,34 @@
   .big3 .kpi .v{font-size:calc(5.6*var(--u))}
   .big3 .kpi .a{font-size:calc(1.6*var(--u));color:var(--muted);margin-top:.4vh}
   .big3 .kpi .a b{color:var(--text);font-variant-numeric:tabular-nums}
-  #sBov table{font-size:calc(2*var(--u))} #sBov th{font-size:calc(1.4*var(--u))} #sBov td{padding:.7vh .3vw}
-  #sBov td small{display:block;color:var(--muted);font-size:calc(1.4*var(--u))}
+  .embh{display:flex;justify-content:space-between;font-size:calc(1.3*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--line);padding-bottom:.4vh}
+  .emb{flex:1;min-height:0;display:flex;flex-direction:column}
+  .emb .dia{flex:1 1 0;max-height:9vh;min-height:0;display:grid;grid-template-columns:5.2vw 1fr auto;align-items:center;gap:.8vw;border-bottom:1px solid #123526}
+  .emb .dia .d{font-size:calc(2.1*var(--u));font-variant-numeric:tabular-nums}
+  .emb .dia .its{display:flex;flex-wrap:wrap;gap:.2vh 1.2vw;font-size:calc(1.85*var(--u))}
+  .emb .dia .its span{white-space:nowrap} .emb .dia .its em{font-style:normal;color:var(--text)} .emb .dia .its em i{font-style:normal;font-size:.75em;color:var(--muted)}
+  .emb .dia .its b{color:var(--accent2);font-variant-numeric:tabular-nums}
+  .emb .dia .tt{font-size:calc(2.3*var(--u));font-variant-numeric:tabular-nums;text-align:right}
+  .emb .dia.tot{flex:0 0 auto;border-top:2px solid var(--line);border-bottom:0;padding:.5vh 0;color:var(--accent2)} .emb .dia.tot .its{color:var(--muted)}
+  .emb .dia.sum{flex:0 0 auto;border:0;padding:.2vh 0;color:var(--muted)} .emb .dia.sum .d,.emb .dia.sum .tt{font-size:calc(1.7*var(--u));font-weight:400}
+  #sBov #bReb{display:none}   /* o rebanho já está na aba Estoques: aqui o espaço é da lista de embarques */
+  #sBov .big3 .kpi{padding:.8vh 1vw} #sBov .big3 .kpi .v{font-size:calc(4.6*var(--u))}
+  #sBov tr.tot td{border-top:1px solid var(--line);font-weight:700;color:var(--accent2);font-size:calc(1.7*var(--u))}
+  #sBov tr.sum td{color:var(--muted)}
   .gcols{display:grid;grid-template-columns:1fr 1fr;gap:1vw}
-  .gcol{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:1.2vh 1vw}
-  .gcol .p{display:flex;justify-content:space-between;align-items:baseline}
+  .gcol{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.9vh 1vw}
+  .gcol .p{display:flex;justify-content:space-between;align-items:baseline;gap:.8vw}
   .gcol .p b{font-size:calc(2.4*var(--u));color:var(--accent)} .gcol .p span{font-size:calc(1.5*var(--u));color:var(--muted)}
-  .gcol .l{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:1vh}
-  .gcol .v{font-size:calc(4.6*var(--u));font-weight:700;color:var(--accent2);font-variant-numeric:tabular-nums;line-height:1.1}
+  .gcol .l{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:.4vh}
+  .gcol .v{font-size:calc(3.8*var(--u));font-weight:700;color:var(--accent2);font-variant-numeric:tabular-nums;line-height:1.1}
   .gcol .v small{font-size:calc(1.7*var(--u));color:var(--muted);font-weight:500;margin-left:.3vw}
-  .gcol .bar{height:1.2vh;margin:1vh 0 .4vh}
+  .gcol .bar{height:1.2vh;margin:.6vh 0 .3vh}
   .gcol .m{display:flex;justify-content:space-between;font-size:calc(1.5*var(--u));color:var(--muted)}
   .gcol .m b{color:var(--text);font-weight:600}
-  #sGraos .ctr .t{font-size:calc(1.9*var(--u))} #sGraos .ctr .t span,#sGraos .ctr .m{font-size:calc(1.5*var(--u))}
-  #sGraos .ctr{padding:.8vh 0}
+  #sGraos .ctr .t{font-size:calc(1.65*var(--u))} #sGraos .ctr .t span,#sGraos .ctr .m{font-size:calc(1.3*var(--u))}
+  #sGraos .ctr{padding:.35vh 0} #sGraos .ctr .bar{height:.6vh;margin:.25vh 0} #sGraos .ctr .m{margin-top:0}
+  #sGraos #gContratos{display:flex;flex-direction:column;gap:.2vh}
+  #sGraos #gContratos.denso .ctr .bar{display:none} #sGraos #gContratos.denso .ctr{padding:.2vh 0}
   /* ---- linha da chuva compacta: rótulo à esquerda + 7 cartões baixos ---- */
   .chuvaP{flex-direction:row;gap:.8vw;padding:1vh 1vw}
   .chuvaL{width:7.5vw;display:flex;flex-direction:column;justify-content:center;gap:.3vh;border-right:1px solid var(--line);padding-right:.8vw}
@@ -240,6 +255,10 @@
   .mcol .hb.mfaz{flex:none}
   .mcol .hb.mfaz{gap:.45vh} .mcol .hb.mfaz .r{grid-template-columns:7vw 1fr 2.6vw;font-size:calc(1.6*var(--u))}
   .mcol .hb.mfaz .r .t{height:1.4vh}
+  .rets{display:grid;grid-template-columns:repeat(4,1fr);gap:.8vw;flex:none}
+  .ret{display:flex;flex-direction:column;background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .7vw;min-width:0}
+  .ret span{font-size:calc(1.6*var(--u));color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ret b{font-size:calc(2.4*var(--u));color:var(--accent2);font-variant-numeric:tabular-nums;line-height:1.15}
   .pp{display:grid;grid-template-columns:repeat(3,1fr);gap:.6vw}
   .pp div{display:flex;flex-direction:column}
   .pp small{font-size:calc(1.35*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
@@ -328,7 +347,8 @@
         </div>
         <div class="nota" id="bReb"></div>
         <h3><span><i class="ico" data-i="caminhao"></i>Próximos embarques</span><small id="embResumo"></small></h3>
-        <table><thead><tr><th>Data</th><th>Frigorífico</th><th>Fazenda</th><th class="n">Cabeças</th></tr></thead><tbody id="bCrono"></tbody></table>
+        <div class="embh"><span>Dia · frigorífico, fazenda e cabeças</span><span>Total do dia</span></div>
+        <div class="emb" id="bCrono"></div>
       </div>
 
       <div class="slide" id="sMortes" data-titulo="Mortes de bovinos" data-ico="alerta">
@@ -408,6 +428,8 @@
         </div>
         <h3><span><i class="ico" data-i="pino"></i>Por local</span> <small><i class="lg" style="--c:var(--accent)"></i>ativos <i class="lg" style="--c:var(--accent2)"></i>férias <i class="lg" style="--c:var(--warn)"></i>afastados</small></h3>
         <div class="hb" id="rFaz"></div>
+        <h3 id="rRetT" style="display:none"><span><i class="ico" data-i="ferias"></i>Voltam de férias · escritório de Campo Grande</span></h3>
+        <div class="rets" id="rRet"></div>
       </div>
 
       <div class="slide" id="sMerc" data-titulo="Mercado" data-ico="alta">
@@ -443,8 +465,8 @@ const CFG = {
   climaAtrasoDias: 1,  // chuva medida mais velha que isso fica em laranja ("há N d")
   relogioSeg: 1,
   carrosselSeg: 20,        // tempo de cada assunto no bloco da direita (bovinos, grãos, estoques, mercado)
-  embarquesNaTela: 5,     // próximos embarques listados no assunto Bovinos
-  contratosNaTela: 3,      // contratos com saldo listados no assunto Grãos (vencimento mais próximo primeiro)
+  embarquesNaTela: 12,    // máximo de DIAS de embarque do mês listados no assunto Bovinos; o que passar disso entra na linha "+ N dias"
+  contratosNaTela: 9,      // máximo de contratos com saldo listados no assunto Grãos (vencimento mais próximo primeiro); passou disso, o título avisa quantos faltam
   alertaAtrasoMin: 270, // coletor roda a cada 2 h, das 8h30 às 18h30; passou de 4,5 h sem BI novo, fica vermelho (à noite fica, é esperado)
   radarZoom: 7,            // zoom do mapa (inteiro). 7 = todas as fazendas; 8 aproxima mais
   ordemFazendas: ["Tucano", "Java", "Ponte de Pedra", "Promissão", "Galheiro", "Panamá", "Mato Grosso"],   // ordem dos cartões de chuva
@@ -626,7 +648,7 @@ function render(d){
   setNum("bEmbAno", b.mes.anoEmbarcado);
   setNum("bPendAno", b.mes.anoAEmbarcar);
   setNum("bAbatAno", b.mes.anoAbatidos);
-  desenharEmbarques(b.cronograma || []);
+  desenharEmbarques(b.cronograma || [], b.mes && b.mes.ref);
 
   desenharGraos(Array.isArray(d.graos) ? d.graos : [d.graos]);
 
@@ -656,11 +678,31 @@ function render(d){
 }
 
 // Próximos embarques: os N mais próximos; o resumo conta todos os programados.
-function desenharEmbarques(embarques){
+function desenharEmbarques(embarques, refMes){
   const total = embarques.reduce((s, c) => s + c.cabecas, 0);
   $("embResumo").textContent = embarques.length ? `${embarques.length} programados · ${fmt(total)} cab.` : "nenhum programado";
-  setHtmlSuave($("bCrono"), embarques.slice(0, CFG.embarquesNaTela)
-    .map(c => `<tr><td>${c.data}</td><td>${c.frigorifico}<small>${c.cidade}</small></td><td>${c.fazenda}</td><td class="n">${fmt(c.cabecas)}</td></tr>`).join(""));
+  // Embarques do mês agrupados por dia (a soma bate com o cartão "A embarcar no mês"); o que é dos meses seguintes
+  // entra numa linha só, para o total geral também fechar. refMes = "11/2026" (mês do cartão).
+  const mm = refMes ? refMes.slice(0, 2) : null;
+  const doMes = mm ? embarques.filter(c => c.data.slice(3, 5) === mm) : embarques;
+  const depois = mm ? embarques.filter(c => c.data.slice(3, 5) !== mm) : [];
+  const soma = a => a.reduce((s, c) => s + c.cabecas, 0);
+  const nomeMes = n => ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"][+n - 1];
+  const meses = [...new Set(depois.map(c => nomeMes(c.data.slice(3, 5))))].join("/");
+  const dias = [];
+  doMes.forEach(c => { const u = dias[dias.length - 1]; if(u && u.data === c.data) u.itens.push(c); else dias.push({ data: c.data, itens: [c] }); });
+  const curto = c => c.frigorifico.split(" ")[0];           // "Agra Agroindustrial" -> "Agra"; a cidade só aparece se o mesmo frigorífico tem 2 cidades
+  const cidades = {}; doMes.forEach(c => (cidades[curto(c)] ??= new Set()).add(c.cidade));
+  let html = dias.slice(0, CFG.embarquesNaTela).map(d => `<div class="dia"><b class="d">${d.data}</b>
+      <div class="its">${d.itens.map(c => `<span><em>${curto(c)}${cidades[curto(c)].size > 1 ? ` <i>${c.cidade}</i>` : ""}</em> ${c.fazenda} <b>${fmt(c.cabecas)}</b></span>`).join("")}</div>
+      <b class="tt">${fmt(soma(d.itens))}</b></div>`).join("");
+  if(dias.length > CFG.embarquesNaTela)
+    html += `<div class="dia sum"><span class="d">+ ${dias.length - CFG.embarquesNaTela} dias</span><span></span><b class="tt">${fmt(soma(dias.slice(CFG.embarquesNaTela).flatMap(d => d.itens)))}</b></div>`;
+  if(doMes.length)
+    html += `<div class="dia tot"><b class="d">Total</b><span class="its">do mês · ${doMes.length} embarques em ${dias.length} dias</span><b class="tt">${fmt(soma(doMes))}</b></div>`;
+  if(depois.length)
+    html += `<div class="dia sum"><span class="d">Depois</span><span class="its">${meses} · ${depois.length} embarques</span><b class="tt">${fmt(soma(depois))}</b></div>`;
+  setHtmlSuave($("bCrono"), html);
 }
 
 // Grãos: soja e milho lado a lado (safra mais recente de cada) + os contratos com saldo que vencem primeiro.
@@ -673,23 +715,25 @@ function desenharGraos(lista){
     const sd = g.saida;
     const saida = !sd ? "–" : sd.hojeSacas ? `<b>${fmt(sd.hojeSacas)} sc</b> hoje` : sd.ultima ? `última <b>${dm(sd.ultima)}</b>` : "sem saída registrada";
     return `<div class="gcol">
-      <div class="p"><b>${g.produto}</b><span>safra ${g.safra}</span></div>
+      <div class="p"><b>${g.produto}</b><span>${g.safra} · contratado ${fmt(g.contratadoSacas)} sc</span></div>
       <div class="l">Saldo a entregar</div>
       <div class="v">${fmt(saldo)}<small>sc</small></div>
       <div class="bar"><i style="width:${pct}%"></i></div>
-      <div class="m"><span><b>${pct}%</b> de ${fmt(g.contratadoSacas)} sc</span><span>${saida}</span></div>
+      <div class="m"><span><b>${fmt(g.entregueSacas)}</b> sc entregues</span><span>${saida}</span></div>
     </div>`;
   }).join(""));
   const venc = s => s.split("/").reverse().join("");   // "dd/mm/aaaa" -> "aaaammdd"
   const abertos = lista.flatMap(g => g.contratos.map(c => ({ ...c, produto: g.produto })))
     .filter(c => c.contratadoSacas - c.entregueSacas > 0)
-    .sort((a, b) => venc(a.vence).localeCompare(venc(b.vence)));
-  $("gPag").textContent = abertos.length ? `${abertos.length} em aberto` : "";
+    .sort((a, b) => (a.contratadoSacas - a.entregueSacas) - (b.contratadoSacas - b.entregueSacas)   // menor saldo (mais perto de acabar) no topo
+      || venc(a.vence).localeCompare(venc(b.vence)) || a.ctr.localeCompare(b.ctr));       // empate: vencimento, depois código
+  $("gContratos").classList.toggle("denso", abertos.length > 7);   // muitos contratos: tira a barrinha para caberem
+  $("gPag").textContent = !abertos.length ? "" : abertos.length > CFG.contratosNaTela ? `mostrando ${CFG.contratosNaTela} de ${abertos.length} em aberto` : `${abertos.length} em aberto`;
   setHtmlSuave($("gContratos"), abertos.length ? abertos.slice(0, CFG.contratosNaTela).map(c => {
     const saldo = c.contratadoSacas - c.entregueSacas;
     const pct = Math.min(100, Math.round(c.entregueSacas / c.contratadoSacas * 100));
     return `<div class="ctr">
-      <div class="t"><b>${c.produto} · ${c.cliente}</b><span>${c.fazenda} · vence ${c.vence.slice(0, 5)}</span></div>
+      <div class="t"><b>${c.ctr} · ${c.produto} · ${c.cliente}</b><span>${c.fazenda} · vence ${c.vence}</span></div>
       <div class="bar"><i style="width:${pct}%"></i></div>
       <div class="m"><span>${fmt(c.entregueSacas)} de ${fmt(c.contratadoSacas)} sc</span><span>saldo <em>${fmt(saldo)}</em> sc</span></div>
     </div>`;
@@ -899,6 +943,13 @@ function desenharRH(h){
   if(!h){ ["rAt", "rFe", "rAf"].forEach(id => setNum(id, null)); return; }
   setNum("rAt", h.ativos); setNum("rFe", h.ferias); setNum("rAf", h.afastados);
   $("rTot").innerHTML = `quadro total <b>${fmt(h.total)}</b>`;
+  // próximos retornos de férias do escritório de Campo Grande (coletor: visao.rh.retornosCG, só nome curto e data)
+  const ret = (h.retornosCG || []).slice(0, 4);
+  const hoje = new Date().toISOString().slice(0, 10);
+  $("rRetT").style.display = h.retornosCG ? "" : "none";
+  setHtmlSuave($("rRet"), ret.length
+    ? ret.map(r => `<div class="ret"><span>${r.nome}</span><b>${r.retorno === hoje ? "hoje" : r.retorno.slice(8, 10) + "/" + r.retorno.slice(5, 7)}</b></div>`).join("")
+    : (h.retornosCG ? `<div class="nota">ninguém em férias no escritório agora</div>` : ""));
   $("rAso").innerHTML = h.exames && h.exames.vencidos != null ? `exames (ASO) vencidos <b>${h.exames.vencidos}</b>` : "";
   if(h.fazendas) barras($("rFaz"), h.fazendas.map(f => ({
     nome: f.fazenda, rotulo: fmt(f.ativos + f.ferias + f.afastados),
