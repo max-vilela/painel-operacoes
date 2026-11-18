@@ -307,6 +307,7 @@
   .cpc h4{font-size:calc(1.9*var(--u));letter-spacing:.08em;text-transform:uppercase;color:var(--accent2);border-bottom:1px solid var(--line);padding-bottom:.4vh}
   .cpl{display:flex;flex-direction:column;gap:.25vh;font-size:calc(1.45*var(--u))}
   .cp1{display:grid;grid-template-columns:5.5vw minmax(0,1fr);gap:.5vw;align-items:baseline}
+  .cpn small.cpp{color:var(--accent2);font-weight:600}
   .cp2{display:grid;grid-template-columns:minmax(0,1fr) 11vw 6.5vw;gap:.6vw;align-items:center}
   .cpn b{color:var(--text);font-weight:600}
   .cpf{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

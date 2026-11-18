@@ -667,7 +667,7 @@ function desenharCompras(lista){
       const res = p.pct <= CFG.compraResiduoPct;                 // resíduo: sobrou pouco, dá para zerar o pedido
       const cor = res ? "#59c3ff" : p.pct <= 20 ? "var(--bad)" : p.pct <= 50 ? "var(--warn)" : "var(--accent)";
       return `<div class="cpl${res ? " res" : ""}" title="${p.produto} · ${p.fornecedor} · pedido ${p.pedido}">
-        <div class="cp1"><span class="cpf">${p.fazenda}</span><span class="cpn"><b>${nomeProduto(p.produto)}</b><small> · ${curto(p.fornecedor)} · ${p.emissao.slice(0, 5)}</small></span></div>
+        <div class="cp1"><span class="cpf">${p.fazenda}</span><span class="cpn"><b>${nomeProduto(p.produto)}</b><small> · ${curto(p.fornecedor)} · </small><small class="cpp">${p.pedido}</small><small> · ${p.emissao.slice(0, 5)}</small></span></div>
         <div class="cp2"><div class="pt"><i style="width:${Math.max(2, Math.min(100, p.pct))}%;background:${cor}"></i></div>
         <b style="color:${cor}">${qtdCompras(p.saldo, cat)}<small> / ${fmt(Math.round(p.quantidade))}</small></b>
         <span class="cpv">${p.valorSaldo != null ? reais(p.valorSaldo) : "–"}</span></div></div>`;
