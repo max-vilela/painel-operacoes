@@ -255,10 +255,14 @@
   .mcol .hb.mfaz{flex:none}
   .mcol .hb.mfaz{gap:.45vh} .mcol .hb.mfaz .r{grid-template-columns:7vw 1fr 2.6vw;font-size:calc(1.6*var(--u))}
   .mcol .hb.mfaz .r .t{height:1.4vh}
-  .rets{display:grid;grid-template-columns:repeat(4,1fr);gap:.8vw;flex:none}
-  .ret{display:flex;flex-direction:column;background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .7vw;min-width:0}
-  .ret span{font-size:calc(1.6*var(--u));color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ret b{font-size:calc(2.4*var(--u));color:var(--accent2);font-variant-numeric:tabular-nums;line-height:1.15}
+  .rets2{display:grid;grid-template-columns:1fr 1fr;gap:1vw;flex:none}
+  .retc{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.7vh .8vw}
+  .retc h4{font-size:calc(1.3*var(--u));font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.3vh}
+  .retc:first-child h4{color:var(--accent2)} .retc:last-child h4{color:#59c3ff}
+  .ret{display:flex;justify-content:space-between;gap:.6vw;line-height:1.35}
+  .ret span{font-size:calc(1.65*var(--u));color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ret b{font-size:calc(1.75*var(--u));font-variant-numeric:tabular-nums} .retc:first-child .ret b{color:var(--accent2)} .retc:last-child .ret b{color:#59c3ff}
+  .ret.vazio span{color:var(--muted);font-size:calc(1.4*var(--u))}
   .pp{display:grid;grid-template-columns:repeat(3,1fr);gap:.6vw}
   .pp div{display:flex;flex-direction:column}
   .pp small{font-size:calc(1.35*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
@@ -428,8 +432,11 @@
         </div>
         <h3><span><i class="ico" data-i="pino"></i>Por local</span> <small><i class="lg" style="--c:var(--accent)"></i>ativos <i class="lg" style="--c:var(--accent2)"></i>férias <i class="lg" style="--c:var(--warn)"></i>afastados</small></h3>
         <div class="hb" id="rFaz"></div>
-        <h3 id="rRetT" style="display:none"><span><i class="ico" data-i="ferias"></i>Voltam de férias · escritório de Campo Grande</span></h3>
-        <div class="rets" id="rRet"></div>
+        <h3 id="rRetT" style="display:none"><span><i class="ico" data-i="ferias"></i>Férias · escritório de Campo Grande</span></h3>
+        <div class="rets2" id="rRets" style="display:none">
+          <div class="retc"><h4>Voltam</h4><div id="rRet"></div></div>
+          <div class="retc"><h4>Entram</h4><div id="rEnt"></div></div>
+        </div>
       </div>
 
       <div class="slide" id="sMerc" data-titulo="Mercado" data-ico="alta">
@@ -943,13 +950,15 @@ function desenharRH(h){
   if(!h){ ["rAt", "rFe", "rAf"].forEach(id => setNum(id, null)); return; }
   setNum("rAt", h.ativos); setNum("rFe", h.ferias); setNum("rAf", h.afastados);
   $("rTot").innerHTML = `quadro total <b>${fmt(h.total)}</b>`;
-  // próximos retornos de férias do escritório de Campo Grande (coletor: visao.rh.retornosCG, só nome curto e data)
-  const ret = (h.retornosCG || []).slice(0, 4);
-  const hoje = new Date().toISOString().slice(0, 10);
-  $("rRetT").style.display = h.retornosCG ? "" : "none";
-  setHtmlSuave($("rRet"), ret.length
-    ? ret.map(r => `<div class="ret"><span>${r.nome}</span><b>${r.retorno === hoje ? "hoje" : r.retorno.slice(8, 10) + "/" + r.retorno.slice(5, 7)}</b></div>`).join("")
-    : (h.retornosCG ? `<div class="nota">ninguém em férias no escritório agora</div>` : ""));
+  // férias do escritório de Campo Grande (coletor: visao.rh.retornosCG / entramCG; só nome curto e data)
+  const dm = iso => iso === new Date().toISOString().slice(0, 10) ? "hoje" : iso.slice(8, 10) + "/" + iso.slice(5, 7);
+  const linhasF = (lista, campo, vazio) => lista.length
+    ? lista.slice(0, 4).map(r => `<div class="ret"><span>${r.nome}</span><b>${dm(r[campo])}</b></div>`).join("")
+    : `<div class="ret vazio">${vazio}</div>`;
+  const temF = h.retornosCG || h.entramCG;
+  $("rRetT").style.display = temF ? "" : "none"; $("rRets").style.display = temF ? "" : "none";
+  setHtmlSuave($("rRet"), linhasF(h.retornosCG || [], "retorno", "ninguém em férias"));
+  setHtmlSuave($("rEnt"), linhasF(h.entramCG || [], "inicio", "ninguém nos próximos 60 dias"));
   $("rAso").innerHTML = h.exames && h.exames.vencidos != null ? `exames (ASO) vencidos <b>${h.exames.vencidos}</b>` : "";
   if(h.fazendas) barras($("rFaz"), h.fazendas.map(f => ({
     nome: f.fazenda, rotulo: fmt(f.ativos + f.ferias + f.afastados),

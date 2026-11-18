@@ -529,28 +529,37 @@ def linhas_ferias(fr):
     return out
 
 
-def ferias_retornos_cg(page, esperar, hoje):
-    """Próximos retornos de férias do escritório de Campo Grande (BI RH, página 'Gestão de Ferias').
-    Quem já começou as férias (início <= hoje) e volta em hoje ou depois, do mais próximo ao mais distante.
-    Só nome curto ('Fernanda G.') e datas: nada de matrícula, CPF ou nome completo."""
+def ferias_cg(page, esperar, hoje, janela_dias=60):
+    """Férias do escritório de Campo Grande (BI RH, página 'Gestão de Ferias', filtro Filial = 11 - ESC. C. GRANDE).
+    - retornos: quem já começou as férias e volta hoje ou depois (início <= hoje <= retorno), do retorno mais próximo ao mais distante;
+    - entram: quem começa as férias nos próximos `janela_dias` dias (hoje < início <= hoje+janela), do início mais próximo ao mais distante.
+    Só nome curto ('Fernanda P.') e datas: nada de matrícula, CPF ou nome completo."""
     abrir_pagina(page, "Gestão de Ferias", esperar)
     if not filtrar_dropdown(page, "FILIAL(", "11 - ESC. C. GRANDE"):
         print("  AVISO férias: filial do escritório de Campo Grande não encontrada"); return None
     esperar(page)
     linhas = ler_tabela(page, 18, max_voltas=60, passo=150, extrator=linhas_ferias)
     d = lambda s: datetime.strptime(s, "%d/%m/%Y").date() if re.fullmatch(r"\d\d/\d\d/\d{4}", s or "") else None
-    ret = []
+    fim = hoje + timedelta(days=janela_dias)
+    ret, entram = [], []
     for l in linhas:
         nome = l[1].split()
         curto = (nome[0].capitalize() + (" " + nome[1][0].upper() + "." if len(nome) > 1 else "")) if nome else "?"
         for ini, volta in ((l[5], l[14]), (l[6], l[15])):
             i, v = d(ini), d(volta)
-            if i and v and i <= hoje <= v:
-                ret.append({"nome": curto, "inicio": i.isoformat(), "retorno": v.isoformat()})
-    ret = [dict(t) for t in {tuple(sorted(r.items())) for r in ret}]            # sem duplicatas
+            if not i or not v:
+                continue
+            reg = {"nome": curto, "inicio": i.isoformat(), "retorno": v.isoformat()}
+            if i <= hoje <= v:
+                ret.append(reg)
+            elif hoje < i <= fim:
+                entram.append(reg)
+    dedup = lambda a: [dict(t) for t in {tuple(sorted(r.items())) for r in a}]
+    ret, entram = dedup(ret), dedup(entram)
     ret.sort(key=lambda r: (r["retorno"], r["nome"]))
-    print(f"  férias CG: {len(linhas)} linhas lidas, {len(ret)} em férias")
-    return ret
+    entram.sort(key=lambda r: (r["inicio"], r["nome"]))
+    print(f"  férias CG: {len(linhas)} linhas lidas, {len(ret)} em férias, {len(entram)} entram nos próximos {janela_dias} dias")
+    return {"retornos": ret, "entram": entram}
 
 
 def rh_quadro(page):
@@ -852,7 +861,9 @@ def visao_geral(page, url_relatorio, esperar, esta_logado):
         v["rh"]["exames"] = rh_exames(page)
         v["rh"].update(rh_por_fazenda(page, esperar))
         try:
-            v["rh"]["retornosCG"] = ferias_retornos_cg(page, esperar, date.today())
+            f = ferias_cg(page, esperar, date.today())
+            if f:
+                v["rh"]["retornosCG"], v["rh"]["entramCG"] = f["retornos"], f["entram"]
         except Exception as e:
             print("  AVISO férias CG:", e)
     def plantio_colheita():
