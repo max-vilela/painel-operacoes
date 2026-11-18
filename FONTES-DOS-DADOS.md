@@ -82,6 +82,8 @@ Links dos BIs: `https://bi.livioeoutro.com.br/Organization/2958af72-9c7b-4653-93
 
 - **BIs:** coletor automático (tarefa do Windows) a cada 2 h, das 8h30 às 18h30. Ele clica em "Atualizar" no portal antes de ler cada BI e grava `bi.js` na pasta do SharePoint.
 - **Painel:** relê os arquivos a cada 10 min. O rodapé fica vermelho ("DESATUALIZADO") se passar de 4h30 sem dado novo.
+- **Idade do dado por aba:** cada assunto do carrossel mostra, ao lado do título, "dado de HH:MM · há N h". O coletor grava em `bi.js` a hora em que **cada fonte** foi lida (`fontes`). Laranja = passou de 4h30 (6 h nas cotações) dentro da janela de coleta (8h30 às 19h; fora dela não alerta); vermelho = a última leitura daquela fonte **falhou** (`falhas`) e o painel está mostrando o último valor bom.
+- Se uma leitura falha, o coletor **mantém o último valor bom** daquela parte (com a hora antiga) em vez de apagar o número.
 - A atualização do **Protheus → Power BI** é agendada no próprio serviço e não depende do coletor.
 
 ## 5. Fontes que existem, mas **não** são usadas

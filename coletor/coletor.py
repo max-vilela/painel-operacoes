@@ -157,6 +157,82 @@ def cmd_dump(args):
         ctx.close()
 
 
+def _ok(dados, fonte):
+    """A parte `fonte` foi lida de verdade nesta coleta? (critério mínimo: o número principal veio)"""
+    v = dados.get("visao") or {}
+    if fonte == "bovinos":
+        b = dados.get("bovinos") or {}
+        return bool(b.get("mes")) and b.get("cronograma") is not None
+    if fonte == "graos":
+        return bool(dados.get("graos"))
+    if fonte == "estoque":
+        g = v.get("estoqueGraos") or {}
+        return bool(v.get("rebanho")) and bool(g.get("soja")) and bool(g.get("milho")) and bool((v.get("combustivel") or {}).get("diesel"))
+    if fonte == "rh":
+        return (v.get("rh") or {}).get("ativos") is not None
+    if fonte == "plantio":
+        return bool(v.get("plantio"))
+    if fonte == "colheita":
+        c = v.get("colheita") or {}
+        return bool(c.get("soja")) and bool(c.get("milho"))
+    if fonte == "mortes":
+        return (v.get("mortes") or {}).get("total") is not None
+    return True
+
+
+FONTES = ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes"]
+CHAVES_VISAO = {"estoque": ["rebanho", "estoqueGraos", "combustivel"], "rh": ["rh"], "plantio": ["plantio"],
+                "colheita": ["colheita"], "mortes": ["mortes"]}
+
+
+def mesclar_com_anterior(dados, agora):
+    """Grava em dados['fontes'] a hora em que CADA parte foi lida e, se uma parte falhou, mantém o último valor bom dela
+    (com a hora antiga) e a lista em dados['falhas']. Assim uma leitura que falha não apaga o número do painel,
+    e o painel mostra de quando o dado é e que a leitura falhou."""
+    try:
+        txt = SAIDA.read_text(encoding="utf-8")
+        ant = json.loads(txt.split("window.DADOS_BI = ", 1)[1].rstrip().rstrip(";"))
+    except Exception:
+        ant = {}
+    fontes_ant = ant.get("fontes") or {}
+    base = ant.get("atualizadoEm")
+    fontes, falhas = {}, []
+    dados.setdefault("visao", {})
+    for f in FONTES:
+        if _ok(dados, f):
+            fontes[f] = agora
+            continue
+        falhas.append(f)
+        fontes[f] = fontes_ant.get(f) or base or None
+        if f == "bovinos" and ant.get("bovinos"):
+            dados["bovinos"] = ant["bovinos"]
+        elif f == "graos" and ant.get("graos"):
+            dados["graos"] = ant["graos"]
+        elif f == "estoque":
+            v, pv = dados["visao"], ant.get("visao") or {}
+            if not v.get("rebanho") and pv.get("rebanho"):
+                v["rebanho"] = pv["rebanho"]
+            for prod in ("soja", "milho"):                       # só o produto que faltou volta do anterior
+                if not (v.get("estoqueGraos") or {}).get(prod) and (pv.get("estoqueGraos") or {}).get(prod):
+                    v.setdefault("estoqueGraos", {})[prod] = pv["estoqueGraos"][prod]
+            comb = v.setdefault("combustivel", {})
+            for k in ("diesel", "gasolina", "etanol"):
+                if not comb.get(k) and (pv.get("combustivel") or {}).get(k):
+                    comb[k] = pv["combustivel"][k]
+        elif f == "colheita":
+            c, pc = dados["visao"].setdefault("colheita", {}), (ant.get("visao") or {}).get("colheita") or {}
+            for prod in ("soja", "milho"):                       # só a cultura que faltou volta do anterior
+                if not c.get(prod) and pc.get(prod):
+                    c[prod] = pc[prod]
+        else:
+            for k in CHAVES_VISAO.get(f, []):                    # rh, plantio, mortes: a parte inteira volta do anterior
+                if k in (ant.get("visao") or {}):
+                    dados["visao"][k] = ant["visao"][k]
+    dados["fontes"], dados["falhas"] = fontes, falhas
+    if falhas:
+        print("  AVISO: leitura falhou, mantido o último valor de:", ", ".join(falhas))
+
+
 def cmd_coletar(_):
     from extracoes import coletar_tudo  # escrito depois do dump de cada página
 
@@ -168,6 +244,7 @@ def cmd_coletar(_):
         dados = coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado)
         ctx.close()
     dados["atualizadoEm"] = datetime.now().astimezone().isoformat(timespec="seconds")
+    mesclar_com_anterior(dados, dados["atualizadoEm"])
     SAIDA.write_text(
         "// GERADO por coletor/coletor.py. Não editar à mão.\n"
         "window.DADOS_BI = " + json.dumps(dados, ensure_ascii=False, indent=1) + ";\n",

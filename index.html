@@ -11,21 +11,21 @@
   :root{
     --u:min(1vh,.5625vw);   /* unidade das fontes: 1vh numa tela 16:9; encolhe se a janela for mais estreita */
     --bg:#06140e; --panel:#0b2118; --panel2:#0f2b1f; --line:#1f5a3f;
-    --accent:#35d07f; --accent2:#e6c84a; --text:#e8f5ec; --muted:#8db5a0;
+    --accent:#35d07f; --accent2:#e6c84a; --text:#e8f5ec; --muted:#a6cbb8;
     --warn:#ff9f43; --bad:#ff5d5d;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;background:var(--bg);color:var(--text);
     font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden}
   .app{display:grid;height:100vh;padding:1vh 1vw;gap:1vh 1vw;
-    grid-template-rows:6vh 1fr 13vh 3.6vh;
+    grid-template-rows:6vh 1fr minmax(14.4vh,auto) 3.6vh;
     grid-template-columns:54fr 46fr}
   header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
     border:1px solid var(--line);background:var(--panel);padding:0 1.2vw;border-radius:.6vh}
   header h1{font-size:calc(2.69*var(--u));letter-spacing:.25em;text-transform:uppercase;color:var(--accent)}
   header .sub{font-size:calc(1.57*var(--u));color:var(--muted);letter-spacing:.12em}
   .dolar{font-size:calc(2.69*var(--u));font-variant-numeric:tabular-nums;margin-left:auto;margin-right:2.5vw;white-space:nowrap}
-  .dolar .l{font-size:calc(1.34*var(--u));color:var(--muted);letter-spacing:.15em;margin-right:.3vw}
+  .dolar .l{font-size:calc(1.4*var(--u));color:var(--muted);letter-spacing:.15em;margin-right:.3vw}
   .dolar b{font-weight:700;color:var(--accent2)}
   .dolar span#dolarVar{font-size:calc(1.68*var(--u));margin-left:.3vw}
   .dolar.velho b{color:var(--warn)}
@@ -35,7 +35,7 @@
   .panel h2{font-size:calc(1.68*var(--u));letter-spacing:.2em;text-transform:uppercase;color:var(--accent);
     border-bottom:1px solid var(--line);padding-bottom:.7vh;margin-bottom:1vh;
     display:flex;justify-content:space-between;align-items:center}
-  .panel h2 small{font-size:calc(1.23*var(--u));color:var(--muted);letter-spacing:.05em;text-transform:none}
+  .panel h2 small{font-size:calc(1.4*var(--u));color:var(--muted);letter-spacing:.05em;text-transform:none}
   .col{display:flex;flex-direction:column;gap:1vh;min-height:0}
   .col .panel{flex:1}
   .col.right .panel:first-child{flex:1.4}
@@ -45,19 +45,19 @@
   #bovMes .kpi.ano{grid-column:span 2}
   #bovMes .kpi .v{font-size:calc(3.81*var(--u))}
   #bovMes .kpi.ano .v{font-size:calc(3.36*var(--u));color:var(--muted)}
-  #bovMes .kpi .l{font-size:calc(1.18*var(--u))}
+  #bovMes .kpi .l{font-size:calc(1.4*var(--u))}
   .col .kpi{padding:.4vh .6vw}
   .col .kpi.big .v{font-size:calc(4.03*var(--u))}
   .col .kpi .v{font-size:calc(2.8*var(--u))}
   .col .kpis{gap:.5vh .5vw}
   .col.right .kpi{padding:.4vh .6vw}
   .col.right .kpi .v{font-size:calc(2.6*var(--u))}
-  .col.right .kpi .u{font-size:calc(1.25*var(--u))}
+  .col.right .kpi .u{font-size:calc(1.4*var(--u))}
   .col.right .kpis{gap:.5vh .5vw}
   .col.right .sub2{margin:.5vh 0 .2vh}
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:.8vh .6vw}
   .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .8vw}
-  .kpi .l{font-size:calc(1.34*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .kpi .l{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
   .kpi .v{font-size:calc(3.58*var(--u));font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
   .kpi .u{font-size:calc(1.46*var(--u));color:var(--muted)}
   .kpi.big{grid-column:1/-1}
@@ -76,7 +76,7 @@
   .bars i{transform-origin:bottom;animation:sobe .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 50ms + 150ms)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
   table{width:100%;border-collapse:collapse;font-size:calc(1.68*var(--u))}
-  th{font-size:calc(1.34*var(--u));color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.08em;
+  th{font-size:calc(1.4*var(--u));color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.08em;
      padding:.4vh .3vw;border-bottom:1px solid var(--line)}
   td{padding:.35vh .3vw;border-bottom:1px solid #123526;font-variant-numeric:tabular-nums}
   td.n,th.n{text-align:right}
@@ -97,13 +97,13 @@
   .farm .cab{display:flex;justify-content:space-between;align-items:baseline;gap:.3vw}
   .farm .now{display:flex;justify-content:space-between;align-items:flex-end;margin-top:.5vh}
   .ontem{display:flex;align-items:baseline;gap:.25vw}
-  .ontem .l{font-size:calc(1.23*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-  .ontem .u{font-size:calc(1.34*var(--u));color:var(--muted)}
+  .ontem .l{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .ontem .u{font-size:calc(1.4*var(--u));color:var(--muted)}
   .acum{display:flex;flex-direction:column;align-items:flex-end;gap:.1vh}
-  .acum span{font-size:calc(1.29*var(--u));color:var(--muted)}
+  .acum span{font-size:calc(1.4*var(--u));color:var(--muted)}
   .acum i{font-style:normal;margin-right:.35vw}
   .acum b{color:var(--text);font-size:calc(1.57*var(--u))}
-  .farm .dado{font-size:calc(1.23*var(--u));color:var(--muted)}
+  .farm .dado{font-size:calc(1.4*var(--u));color:var(--muted)}
   .farm .dado.velho{color:var(--warn);font-weight:700}
   .farm{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.8vh .6vw;display:flex;flex-direction:column}
   .farm b{font-size:calc(1.9*var(--u))}
@@ -112,15 +112,15 @@
   .bars{flex:1;display:flex;align-items:flex-end;gap:.4vw;margin-top:.6vh}
   .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
   .bars i{width:100%;background:linear-gradient(0deg,#1b6fa8,#59c3ff);border-radius:.3vh .3vh 0 0;min-height:2px}
-  .bars span{font-size:calc(1.23*var(--u));color:var(--muted);margin-top:.2vh}
-  .bars em{font-style:normal;font-size:calc(1.23*var(--u));color:var(--muted)}
+  .bars span{font-size:calc(1.4*var(--u));color:var(--muted);margin-top:.2vh}
+  .bars em{font-style:normal;font-size:calc(1.4*var(--u));color:var(--muted)}
   table.mkt td{padding:.3vh .2vw;line-height:1.25}
   table.mkt td b{font-size:calc(1.68*var(--u))}
-  table.mkt td span{font-size:calc(1.29*var(--u))}
-  table.mkt th{font-size:calc(1.18*var(--u))}
+  table.mkt td span{font-size:calc(1.4*var(--u))}
+  table.mkt th{font-size:calc(1.4*var(--u))}
   .up{color:var(--accent)} .down{color:var(--bad)} .flat{color:var(--muted)}
   .tag{display:inline-block;padding:.1vh .5vw;border:1px solid var(--accent2);color:var(--accent2);
-       border-radius:1vh;font-size:calc(1.23*var(--u));letter-spacing:.1em}
+       border-radius:1vh;font-size:calc(1.4*var(--u));letter-spacing:.1em}
   footer{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
     font-size:calc(1.57*var(--u));color:var(--muted);border:1px solid var(--line);background:var(--panel);
     border-radius:.6vh;padding:0 1.2vw;white-space:nowrap;overflow:hidden}
@@ -130,13 +130,13 @@
   .dot{display:inline-block;width:1vh;height:1vh;border-radius:50%;background:var(--accent);margin-right:.5vw}
   .dot.stale{background:var(--bad)}
   .wide{grid-column:1/-1}
-  .sub2{display:flex;justify-content:space-between;font-size:calc(1.34*var(--u));color:var(--muted);
+  .sub2{display:flex;justify-content:space-between;font-size:calc(1.4*var(--u));color:var(--muted);
         text-transform:uppercase;letter-spacing:.1em;margin:1vh 0 .4vh;border-bottom:1px solid var(--line);padding-bottom:.3vh}
   .ctrs{flex:1;min-height:0;overflow:hidden}
   .ctr{padding:.3vh 0;border-bottom:1px solid #123526}
   .ctr .t{display:flex;justify-content:space-between;font-size:calc(1.68*var(--u))}
-  .ctr .t b{color:var(--text)} .ctr .t span{color:var(--muted);font-size:calc(1.34*var(--u))}
-  .ctr .m{display:flex;justify-content:space-between;font-size:calc(1.34*var(--u));color:var(--muted);margin-top:.2vh}
+  .ctr .t b{color:var(--text)} .ctr .t span{color:var(--muted);font-size:calc(1.4*var(--u))}
+  .ctr .m{display:flex;justify-content:space-between;font-size:calc(1.4*var(--u));color:var(--muted);margin-top:.2vh}
   .ctr .m em{font-style:normal;color:var(--accent2)}
   .ctr .bar{height:.9vh;margin:.3vh 0}
   .ctr.fim{opacity:.55}
@@ -146,6 +146,7 @@
   .car h2 .dots{position:relative;z-index:6}
   .car h2 .dots i{width:max(2.4vh,24px);height:max(2.4vh,24px);border-radius:50%;cursor:pointer;position:relative;display:block}
   .car h2 .dots i:before{content:"";position:absolute;inset:max(.6vh,6px);border-radius:50%;background:var(--line);transition:background .4s,transform .2s}
+  .car h2 .dots i:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
   .car h2 .dots i:hover:before{background:var(--muted);transform:scale(1.25)}
   .car h2 .dots i.on:before{background:var(--accent)}
   .prog{height:.35vh;background:#0a1c14;border-radius:1vh;overflow:hidden;margin:-.7vh 0 1.4vh}
@@ -166,7 +167,7 @@
   .big3 .kpi .v{font-size:calc(5.6*var(--u))}
   .big3 .kpi .a{font-size:calc(1.6*var(--u));color:var(--muted);margin-top:.4vh}
   .big3 .kpi .a b{color:var(--text);font-variant-numeric:tabular-nums}
-  .embh{display:flex;justify-content:space-between;font-size:calc(1.3*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--line);padding-bottom:.4vh}
+  .embh{display:flex;justify-content:space-between;font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--line);padding-bottom:.4vh}
   .emb{flex:1;min-height:0;display:flex;flex-direction:column}
   .emb .dia{flex:1 1 0;max-height:9vh;min-height:0;display:grid;grid-template-columns:5.2vw 1fr auto;align-items:center;gap:.8vw;border-bottom:1px solid #123526}
   .emb .dia .d{font-size:calc(2.1*var(--u));font-variant-numeric:tabular-nums}
@@ -190,25 +191,25 @@
   .gcol .bar{height:1.2vh;margin:.6vh 0 .3vh}
   .gcol .m{display:flex;justify-content:space-between;font-size:calc(1.5*var(--u));color:var(--muted)}
   .gcol .m b{color:var(--text);font-weight:600}
-  #sGraos .ctr .t{font-size:calc(1.65*var(--u))} #sGraos .ctr .t span,#sGraos .ctr .m{font-size:calc(1.3*var(--u))}
-  #sGraos .ctr{padding:.35vh 0} #sGraos .ctr .bar{height:.6vh;margin:.25vh 0} #sGraos .ctr .m{margin-top:0}
-  #sGraos #gContratos{display:flex;flex-direction:column;gap:.2vh}
+  #sGraos .ctr .t{font-size:calc(1.65*var(--u))} #sGraos .ctr .t span,#sGraos .ctr .m{font-size:calc(1.4*var(--u))}
+  #sGraos .ctr{padding:.12vh 0;line-height:1.15} #sGraos .ctr .bar{height:.5vh;margin:.1vh 0} #sGraos .ctr .m{margin-top:0}
+  #sGraos #gContratos{display:flex;flex-direction:column;gap:.1vh}
   #sGraos #gContratos.denso .ctr .bar{display:none} #sGraos #gContratos.denso .ctr{padding:.2vh 0}
   /* ---- linha da chuva compacta: rótulo à esquerda + 7 cartões baixos ---- */
   .chuvaP{flex-direction:row;gap:.8vw;padding:1vh 1vw}
   .chuvaL{width:7.5vw;display:flex;flex-direction:column;justify-content:center;gap:.3vh;border-right:1px solid var(--line);padding-right:.8vw}
   .chuvaL b{font-size:calc(2*var(--u));letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}
   .chuvaL span{font-size:calc(1.4*var(--u));color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
-  .chuvaL small{font-size:calc(1.2*var(--u));color:var(--muted);line-height:1.3;margin-top:.4vh}
+  .chuvaL small{font-size:calc(1.4*var(--u));color:var(--muted);line-height:1.3;margin-top:.4vh}
   .chuvaP .chuva{flex:1;gap:.5vw}
   .chuvaP .farm{padding:.6vh .6vw;gap:.2vh}
   .chuvaP .farm .cab{align-items:center}
   .chuvaP .farm b{font-size:calc(1.8*var(--u))}
-  .chuvaP .ont{font-size:calc(1.3*var(--u));color:var(--muted);white-space:nowrap}
+  .chuvaP .ont{font-size:calc(1.4*var(--u));color:var(--muted);white-space:nowrap}
   .chuvaP .ont em{font-style:normal;font-size:calc(2.6*var(--u));font-weight:700;color:var(--accent);margin-right:.2vw}
-  .chuvaP .ac{font-size:calc(1.3*var(--u));color:var(--muted)} .chuvaP .ac b{font-size:calc(1.4*var(--u));color:var(--text);font-weight:600}
+  .chuvaP .ac{font-size:calc(1.4*var(--u));color:var(--muted)} .chuvaP .ac b{font-size:calc(1.4*var(--u));color:var(--text);font-weight:600}
   .chuvaP .bars{margin-top:.2vh;gap:.3vw}
-  .chuvaP .bars span,.chuvaP .bars em{font-size:calc(1.1*var(--u))}
+  .chuvaP .bars span,.chuvaP .bars em{font-size:calc(1.4*var(--u))}
   /* barras horizontais (fazendas, motivos): nome | barra | valor */
   .hb{display:flex;flex-direction:column;gap:.7vh;flex:1;min-height:0}
   .hb .r{display:grid;grid-template-columns:11vw 1fr 6vw;align-items:center;gap:.8vw;font-size:calc(1.9*var(--u))}
@@ -248,16 +249,18 @@
   .mcol.mes .mh{color:#ff8a8a} .mcol.ano .mh{color:var(--muted)}
   .mk{display:grid;grid-template-columns:1fr 1fr;gap:.6vw}
   .mk div{display:flex;flex-direction:column}
-  .mk small{font-size:calc(1.35*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center}
+  .mk small{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center}
   .mk b{font-size:calc(4.6*var(--u));font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
   .mcol.ano .mk b{font-size:calc(3.8*var(--u))}
-  .mcol .hb.mini3{flex:none;gap:.5vh} .mcol .hb.mini3 .r{grid-template-columns:1fr 5vw 2.6vw;font-size:calc(1.6*var(--u))}
+  .mcol .hb.mini3{flex:none;gap:.5vh} .mcol .hb.mini3 .r{grid-template-columns:1fr 3.6vw 2.6vw;font-size:calc(1.6*var(--u))}
   .mcol .hb.mfaz{flex:none}
   .mcol .hb.mfaz{gap:.45vh} .mcol .hb.mfaz .r{grid-template-columns:7vw 1fr 2.6vw;font-size:calc(1.6*var(--u))}
   .mcol .hb.mfaz .r .t{height:1.4vh}
+  .idade{margin-left:.8vw;font-weight:500;letter-spacing:.04em;text-transform:none;color:var(--muted);white-space:nowrap}
+  .idade.velho{color:var(--warn);font-weight:700} .idade.ruim{color:var(--bad);font-weight:700}
   .rets2{display:grid;grid-template-columns:1fr 1fr;gap:1vw;flex:none}
   .retc{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.7vh .8vw}
-  .retc h4{font-size:calc(1.3*var(--u));font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.3vh}
+  .retc h4{font-size:calc(1.4*var(--u));font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.3vh}
   .retc:first-child h4{color:var(--accent2)} .retc:last-child h4{color:#59c3ff}
   .ret{display:flex;justify-content:space-between;gap:.6vw;line-height:1.35}
   .ret span{font-size:calc(1.65*var(--u));color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -265,9 +268,9 @@
   .ret.vazio span{color:var(--muted);font-size:calc(1.4*var(--u))}
   .pp{display:grid;grid-template-columns:repeat(3,1fr);gap:.6vw}
   .pp div{display:flex;flex-direction:column}
-  .pp small{font-size:calc(1.35*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .pp small{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
   .pp b{font-size:calc(3.6*var(--u));font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
-  .pp i{font-style:normal;font-size:calc(1.35*var(--u));color:var(--muted)}
+  .pp i{font-style:normal;font-size:calc(1.4*var(--u));color:var(--muted)}
   .sub3.cols{display:flex;justify-content:space-between}
   #sPlant .hb .r{grid-template-columns:6.6vw 1fr auto}
   #sPlant .hb .r b{font-size:calc(1.65*var(--u));white-space:nowrap} #sPlant .hb .r b small{color:var(--muted);font-weight:400}
@@ -275,7 +278,7 @@
   .hb2 .r .v em{font-style:normal;font-size:.75em;margin-left:.35vw;display:inline-block;width:1em}
   .hb2 .r .v em.up{color:var(--accent)} .hb2 .r .v em.dn{color:var(--warn)}
   .hb2 .r{grid-template-columns:1fr 4.6vw 4.6vw!important;border-bottom:1px solid #123526;padding-bottom:.6vh}
-  .hb2 .r.cab{font-size:calc(1.35*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  .hb2 .r.cab{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
   .hb2 .r.cab .c{display:flex;align-items:center}
   .cult{font-size:calc(1.7*var(--u));color:var(--text);display:flex;align-items:center} .cult .lg{margin:0 .4vw 0 0}
   #sPlant .hb .r{grid-template-columns:7.5vw 1fr 4.6vw;font-size:calc(1.75*var(--u))}
@@ -286,7 +289,7 @@
   .hb2 .c .t{height:1.5vh;background:#0a1c14;border-radius:.4vh;overflow:hidden}
   .hb2 .c .t i{display:block;height:100%;background:var(--c)}
   .hb2 .c b{font-size:calc(1.6*var(--u));text-align:right;font-variant-numeric:tabular-nums}
-  table.pc{font-size:calc(1.9*var(--u))} table.pc th{font-size:calc(1.35*var(--u));text-align:center;line-height:1.3} table.pc th:first-child{text-align:left}
+  table.pc{font-size:calc(1.9*var(--u))} table.pc th{font-size:calc(1.4*var(--u));text-align:center;line-height:1.3} table.pc th:first-child{text-align:left}
   table.pc td{padding:.75vh .4vw;text-align:center} table.pc td:first-child{text-align:left}
   table.pc td .bar{height:1vh;margin:.3vh 0 0} table.pc td small{color:var(--muted);font-size:calc(1.4*var(--u))}
   table.pc tr.tot td{border-top:2px solid var(--line);font-weight:700;color:var(--accent2)}
@@ -311,7 +314,7 @@
   .ind .cr b{color:var(--text);font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
   .ind .cr b small{font-size:.8em;color:var(--muted);font-weight:400}
   .ind .cr em{font-style:normal;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
-  .ind .neg{display:flex;justify-content:space-between;gap:.6vw;font-size:calc(1.5*var(--u));color:var(--muted);margin-bottom:.4vh}
+  .ind .neg{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.2vh .6vw;font-size:calc(1.5*var(--u));color:var(--muted);margin-bottom:.4vh}
   .ind .neg span{white-space:nowrap}
   .ind .neg i{display:inline-block;width:1.1vh;height:1.1vh;border-radius:.25vh;margin-right:.4vw;vertical-align:middle}
   .ind .neg b{color:var(--text)} .ind .neg em{font-style:normal}
@@ -339,7 +342,7 @@
 
   <!-- DIREITA: CARROSSEL (um assunto por vez) -->
   <section class="panel car">
-    <h2><span><i class="ico" id="carIco"></i><span id="carTitulo">Bovinos</span></span><span class="dots" id="dots"></span></h2>
+    <h2><span><i class="ico" id="carIco"></i><span id="carTitulo">Bovinos</span> <small class="idade" id="idade"></small></span><span class="dots" id="dots"></span></h2>
     <div class="prog"><i id="prog"></i></div>
     <div class="slides">
 
@@ -410,7 +413,7 @@
               <div><div class="cult"><i class="lg" style="--c:#f2b33d"></i><span id="pMiL">Milho</span></div><div class="grande"><span id="pMi">–</span><small>sc/ha</small></div><div class="sub3" id="pMiA"></div></div>
             </div>
             <div class="hb2" id="pCoFaz"></div>
-            <div class="nota" style="font-size:calc(1.3*var(--u))">▲ acima / ▼ abaixo da média geral da cultura</div>
+            <div class="nota" style="font-size:calc(1.4*var(--u))">▲ acima / ▼ abaixo da média geral da cultura</div>
           </div>
         </div>
       </div>
@@ -474,6 +477,8 @@ const CFG = {
   carrosselSeg: 20,        // tempo de cada assunto no bloco da direita (bovinos, grãos, estoques, mercado)
   embarquesNaTela: 12,    // máximo de DIAS de embarque do mês listados no assunto Bovinos; o que passar disso entra na linha "+ N dias"
   contratosNaTela: 9,      // máximo de contratos com saldo listados no assunto Grãos (vencimento mais próximo primeiro); passou disso, o título avisa quantos faltam
+  janelaColeta: ["08:30", "19:00"],  // fora dessa janela o painel NÃO acusa atraso (à noite não há coleta)
+  atrasoMercadoMin: 360,   // cotações são lidas 3x ao dia (8h30, 12h30, 17h30): atraso acima de 6 h
   alertaAtrasoMin: 270, // coletor roda a cada 2 h, das 8h30 às 18h30; passou de 4,5 h sem BI novo, fica vermelho (à noite fica, é esperado)
   radarZoom: 7,            // zoom do mapa (inteiro). 7 = todas as fazendas; 8 aproxima mais
   ordemFazendas: ["Tucano", "Java", "Ponte de Pedra", "Promissão", "Galheiro", "Panamá", "Mato Grosso"],   // ordem dos cartões de chuva
@@ -623,7 +628,7 @@ function desenharClima(){
     const barras = prev ? prev.map((mm, i) => {
       const dia = i === 0 ? "hoje" : new Date(m.datas[i] + "T12:00:00").toLocaleDateString("pt-BR", { weekday:"short" }).replace(".", "");
       return `<div><em>${mm}</em><i style="--i:${i};height:${Math.max(2, mm / max * 80)}%"></i><span>${dia}</span></div>`;
-    }).join("") : `<div style="color:var(--muted);font-size:calc(1.34*var(--u));justify-content:center">sem previsão</div>`;
+    }).join("") : `<div style="color:var(--muted);font-size:calc(1.4*var(--u));justify-content:center">sem previsão</div>`;
 
     // Cartão enxuto: nome, o valor principal em destaque (ontem) e os acumulados em coluna, mais as barras da previsão.
     let cab = "", principal = null, acum = [];
@@ -644,8 +649,8 @@ function desenharClima(){
 }
 
 function render(d){
-  $("exemploTag").innerHTML = d.exemploDe && d.exemploDe.length
-    ? '<span class="tag">EXEMPLO: ' + d.exemploDe.join(" · ") + '</span>' : "";
+  $("exemploTag").innerHTML = d.semLeitura && d.semLeitura.length
+    ? '<span class="tag">SEM LEITURA: ' + d.semLeitura.join(" · ") + '</span>' : "";
 
   const b = d.bovinos;
   // setNum: o número conta até o valor novo; dado que o coletor não trouxe aparece como traço.
@@ -659,7 +664,7 @@ function render(d){
 
   desenharGraos(Array.isArray(d.graos) ? d.graos : [d.graos]);
 
-  const mk = d.mercado;
+  const mk = d.mercado || { pracas: [], linhas: [] };
   const celula = c => {
     const cls = c.var > 0 ? "up" : c.var < 0 ? "down" : "flat";
     const seta = c.var > 0 ? "▲" : c.var < 0 ? "▼" : "■";
@@ -672,7 +677,8 @@ function render(d){
     const velha = (Date.now() - new Date(datas[0] + "T12:00:00")) / 86400000 > 3;
     sm.textContent = "cotações de " + datas[0].split("-").reverse().slice(0, 2).join("/");
     sm.classList.toggle("stale", velha);
-  } else sm.textContent = "cotações · exemplo";
+  } else { sm.textContent = mk.linhas.length ? "cotações" : "sem leitura das cotações"; sm.classList.toggle("stale", !mk.linhas.length); }
+  if(!mk.linhas.length) setHtmlSuave($("mercado"), `<div class="nota">Cotações indisponíveis no momento.</div>`); else
   setHtmlSuave($("mercado"), `<table class="mkt"><thead><tr><th></th>${mk.pracas.map(p => `<th class="n">${p}</th>`).join("")}</tr></thead><tbody>`
     + mk.linhas.map(l => `<tr><td>${l.produto}<br><span class="flat">por ${l.unidade}</span></td>${l.valores.map(celula).join("")}</tr>`).join("")
     + `</tbody></table>`);
@@ -714,6 +720,7 @@ function desenharEmbarques(embarques, refMes){
 
 // Grãos: soja e milho lado a lado (safra mais recente de cada) + os contratos com saldo que vencem primeiro.
 function desenharGraos(lista){
+  if(!lista.length){ setHtmlSuave($("gCols"), `<div class="nota">Sem leitura dos contratos de grãos.</div>`); setHtmlSuave($("gContratos"), ""); $("gPag").textContent = ""; return; }
   const dm = iso => iso.split("-").reverse().slice(0, 2).join("/");
   setHtmlSuave($("gCols"), lista.map(g => {
     const saldo = g.contratadoSacas - g.entregueSacas;
@@ -777,7 +784,7 @@ document.querySelectorAll(".ico[data-i]").forEach(el => el.innerHTML = svgIcone(
 const slides = [...document.querySelectorAll(".slide")];
 let slideAtual = -1;
 // Bolinhas clicáveis: vão direto ao assunto e o tempo de troca recomeça a contar dali.
-$("dots").innerHTML = slides.map(s => `<i title="${s.dataset.titulo}"></i>`).join("");
+$("dots").innerHTML = slides.map(s => `<i role="button" tabindex="0" title="${s.dataset.titulo}" aria-label="Mostrar ${s.dataset.titulo}"></i>`).join("");
 let relogioCarrossel = null;
 function irPara(n){
   clearInterval(relogioCarrossel);
@@ -785,7 +792,10 @@ function irPara(n){
   proximoSlide();
   relogioCarrossel = setInterval(proximoSlide, CFG.carrosselSeg * 1000);
 }
-[...$("dots").children].forEach((d, i) => d.addEventListener("click", () => irPara(i)));
+[...$("dots").children].forEach((d, i) => {
+  d.addEventListener("click", () => irPara(i));
+  d.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); irPara(i); } });
+});
 function proximoSlide(){
   const ant = slides[slideAtual];
   slideAtual = (slideAtual + 1) % slides.length;
@@ -794,6 +804,7 @@ function proximoSlide(){
   if(ant && ant !== s){ ant.classList.remove("on"); ant.classList.add("sai"); setTimeout(() => ant.classList.remove("sai"), 650); }
   s.classList.add("on");
   setTextoSuave($("carTitulo"), s.dataset.titulo);
+  atualizarIdade();
   $("carIco").innerHTML = svgIcone(s.dataset.ico);
   [...$("dots").children].forEach((d, i) => d.classList.toggle("on", i === slideAtual));
   const p = $("prog");                       // barrinha que enche até a próxima troca
@@ -803,14 +814,57 @@ function proximoSlide(){
   }));
 }
 
+// Janela em que o coletor deve estar rodando (CFG.janelaColeta): fora dela, dado "velho" é esperado e não vira alarme.
+function emJanelaDeColeta(){
+  const [h1, m1] = CFG.janelaColeta[0].split(":").map(Number), [h2, m2] = CFG.janelaColeta[1].split(":").map(Number);
+  const a = new Date(); const min = a.getHours() * 60 + a.getMinutes();
+  return min >= h1 * 60 + m1 && min <= h2 * 60 + m2;
+}
+// "08:39 · há 2 h" (com "ontem"/dd/mm quando não é de hoje)
+function textoIdade(iso){
+  const d = new Date(iso), agora = new Date(), min = (agora - d) / 60000;
+  const hm = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const dia0 = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const dias = Math.round((dia0(agora) - dia0(d)) / 86400000);
+  const quando = dias === 0 ? hm : dias === 1 ? "ontem " + hm : d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " + hm;
+  const resto = Math.round(min % 60);
+  const dur = min < 1 ? "agora" : min < 60 ? `há ${Math.round(min)} min` : min < 1440 ? `há ${Math.floor(min / 60)} h${resto ? " " + String(resto).padStart(2, "0") : ""}` : `há ${Math.floor(min / 1440)} d`;
+  return { quando, dur, min };
+}
+// De que fonte vem cada assunto do carrossel (a idade mostrada é a da fonte MAIS ANTIGA do assunto)
+const FONTE_ABA = { sBov: ["bovinos"], sMortes: ["mortes"], sGraos: ["graos"], sPlant: ["plantio", "colheita"],
+                    sEst: ["estoque", "graos"], sRH: ["rh"], sMerc: ["mercado"] };
+const ROTULO_FONTE = { bovinos: "bovinos", graos: "grãos", estoque: "estoques", rh: "funcionários", plantio: "plantio",
+                       colheita: "colheita", mortes: "mortes", mercado: "cotações" };
+function atualizarIdade(){
+  const el = $("idade"), aba = slides[slideAtual], d = window.DADOS;
+  if(!el || !aba || !d) return;
+  const chaves = FONTE_ABA[aba.id] || [];
+  const datas = chaves.map(k => d.fontes && d.fontes[k]).filter(Boolean);
+  const falhou = chaves.some(k => (d.falhas || []).includes(k));
+  if(!datas.length){ el.textContent = "sem leitura"; el.className = "idade ruim"; return; }
+  const mais = datas.reduce((a, b) => new Date(a) < new Date(b) ? a : b);
+  const { quando, dur, min } = textoIdade(mais);
+  const limite = aba.id === "sMerc" ? CFG.atrasoMercadoMin : CFG.alertaAtrasoMin;
+  const velho = emJanelaDeColeta() && min > limite;
+  el.className = "idade" + (falhou ? " ruim" : velho ? " velho" : "");
+  el.textContent = (falhou ? "leitura falhou · " : "") + "dado de " + quando + " · " + dur;
+  el.title = (falhou ? "A última leitura desta fonte falhou: o painel mostra o último valor bom. " : "") + "Fonte: " + chaves.map(k => ROTULO_FONTE[k]).join(" + ");
+}
+
 function atualizarStatus(){
   const d = window.DADOS; if(!d) return;
+  atualizarIdade();
+  if(!d.atualizadoEm){
+    $("dot").className = "dot stale"; $("upd").className = "stale"; $("upd").textContent = "sem dados do BI"; return;
+  }
   const idade = (Date.now() - new Date(d.atualizadoEm).getTime()) / 60000;
-  const stale = idade > CFG.alertaAtrasoMin;
-  $("dot").className = "dot" + (stale ? " stale" : "");
-  $("upd").className = stale ? "stale" : "ok";
-  $("upd").textContent = (d.deBi ? "BI de " : "dados de ") + new Date(d.atualizadoEm).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
-    + (stale ? " · DESATUALIZADO" : "");
+  const stale = emJanelaDeColeta() && idade > CFG.alertaAtrasoMin;
+  const falhas = (d.falhas || []).map(k => ROTULO_FONTE[k]);
+  $("dot").className = "dot" + (stale || falhas.length ? " stale" : "");
+  $("upd").className = stale || falhas.length ? "stale" : "ok";
+  $("upd").textContent = "BI de " + new Date(d.atualizadoEm).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
+    + (stale ? " · DESATUALIZADO" : "") + (falhas.length ? " · leitura falhou: " + falhas.join(", ") : "");
 }
 
 function carregarScript(src){
@@ -823,24 +877,30 @@ function carregarScript(src){
   });
 }
 
-/* data.js = base (mercado, clima, exemplos). bi.js = gerado pelo coletor a partir dos BIs
-   (bovinos e grãos). Se bi.js não existir, ou faltar um bloco, esse bloco fica como EXEMPLO. */
+/* data.js = base (só o que não vem de BI). bi.js = coletor (bovinos, grãos, estoques, RH, plantio, colheita, mortes).
+   mercado.js = cotações. Se um deles faltar, o bloco fica "sem leitura"; nunca entra valor de exemplo. */
 async function carregarDados(){
   window.DADOS_BI = undefined;
   if(!await carregarScript("data.js")){ atualizarStatus(); return; }   // mantém o último valor na tela
   const bi = (await carregarScript("bi.js")) ? window.DADOS_BI : null;
   const d = window.DADOS;
-  d.exemploDe = [];
-  // mercado.js: gerado por coletor/cotacoes.py (fontes públicas, sem login). Sem ele, fica o EXEMPLO de data.js.
+  d.semLeitura = [];
+  // mercado.js: gerado por coletor/cotacoes.py (fontes públicas, sem login)
   window.DADOS_MERCADO = undefined;
-  if(await carregarScript("mercado.js") && window.DADOS_MERCADO) d.mercado = window.DADOS_MERCADO; else d.exemploDe.push("mercado");
-  // bovinos: mescla por parte. O que o coletor ainda não lê continua de exemplo e é etiquetado.
+  if(await carregarScript("mercado.js") && window.DADOS_MERCADO) d.mercado = window.DADOS_MERCADO; else d.semLeitura.push("cotações");
   const bb = (bi && bi.bovinos) || {};
-  if(bb.mes) d.bovinos.mes = bb.mes; else d.exemploDe.push("mês bovinos");
-  if(bb.cronograma) d.bovinos.cronograma = bb.cronograma; else d.exemploDe.push("embarques");
-  if(bi && bi.graos)   d.graos = bi.graos;     else d.exemploDe.push("grãos");
-  if(bi) d.atualizadoEm = bi.atualizadoEm;
+  d.bovinos = { mes: bb.mes || {}, cronograma: bb.cronograma || [] };
+  if(!bb.mes) d.semLeitura.push("bovinos");
+  d.graos = (bi && bi.graos) || [];
+  if(!d.graos.length) d.semLeitura.push("grãos");
+  d.atualizadoEm = bi ? bi.atualizadoEm : null;
   d.deBi = !!bi;
+  // Hora em que cada fonte foi lida pela última vez (coletor grava bi.fontes; coletas antigas: usa a hora geral)
+  const f = (bi && bi.fontes) || {};
+  d.fontes = {};
+  ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes"].forEach(k => d.fontes[k] = f[k] || (bi && bi.atualizadoEm) || null);
+  d.fontes.mercado = (d.mercado && d.mercado.atualizadoEm) || null;
+  d.falhas = (bi && bi.falhas) || [];
   render(d); desenharFaixa(bi && bi.visao); atualizarStatus();
 }
 
@@ -972,7 +1032,8 @@ function colunaMortes(s, d, titulo){
   $("mT" + s).textContent = titulo;
   if(!d){ setNum("mTot" + s, null); setNum("mCan" + s, null); $("mMot" + s).innerHTML = ""; $("mFaz" + s).innerHTML = ""; return; }
   setNum("mTot" + s, d.total); setNum("mCan" + s, d.cantina);
-  barras($("mMot" + s), (d.motivos || []).map(x => ({ nome: x.motivo.split(" - ")[0], rotulo: fmt(x.qtd), partes: [{ v: x.qtd, cor: "var(--bad)" }] })));
+  const causaCurta = s => s.split(" - ")[0].replace(" / ", "/").replace(/parasitaria/i, "parasitária").replace(/ bovina$/i, "");
+  barras($("mMot" + s), (d.motivos || []).map(x => ({ nome: causaCurta(x.motivo), rotulo: fmt(x.qtd), partes: [{ v: x.qtd, cor: "var(--bad)" }] })));
   // todas as fazendas, na ordem do painel; quem não teve morte no período aparece com 0
   const por = Object.fromEntries((d.fazendas || []).map(f => [f.fazenda, f.mortes]));
   barras($("mFaz" + s), CFG.ordemFazendas.map(n => ({ nome: n, rotulo: fmt(por[n] || 0), partes: [{ v: por[n] || 0, cor: "#ff7a7a" }] })));
