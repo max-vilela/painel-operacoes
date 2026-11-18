@@ -422,7 +422,7 @@ async function carregarDados(){
   // Hora em que cada fonte foi lida pela última vez (coletor grava bi.fontes; coletas antigas: usa a hora geral)
   const f = (bi && bi.fontes) || {};
   d.fontes = {};
-  ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes"].forEach(k => d.fontes[k] = f[k] || (bi && bi.atualizadoEm) || null);
+  ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes", "compras"].forEach(k => d.fontes[k] = f[k] || (bi && bi.atualizadoEm) || null);
   d.fontes.mercado = (d.mercado && d.mercado.atualizadoEm) || null;
   d.falhas = (bi && bi.falhas) || [];
   render(d); desenharFaixa(bi && bi.visao); atualizarStatus();

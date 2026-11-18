@@ -51,6 +51,11 @@ Links dos BIs: `https://bi.livioeoutro.com.br/Organization/2958af72-9c7b-4653-93
 | Produtividade da soja (sc/ha, sacas, área) | Indicadores Colheita Soja | Produção por Fazenda - Sintetico | Automático: safra mais recente com área colhida > 0 (hoje SOJA SAFRA 25/26) |
 | Produtividade do milho (sc/ha, sacas, área) | Indicadores Colheita Milho | Produção por Fazenda - Sintetico | Automático: safra mais recente com área colhida > 0 (hoje MILHO SAFRINHA 26/26) |
 
+### Compras (pedidos com saldo)
+| Indicador | BI | Página | Como é obtido |
+|---|---|---|---|
+| Saldo por pedido: produto, fornecedor, fazenda, data, quantidade (kg), saldo (kg) e saldo em R$ | Compras (dbe070ab…) | Pedido de Compras x Documento de Entrada | O coletor (compras.py) filtra os grupos de produto 0101, 0201, 0301-0306, 0401, 0602 e 0606, abre a matriz inteira (Expandir > Todos), rola e guarda só os pedidos com saldo > 0 dos 14 produtos acompanhados. Pedido com saldo <= 5% do total é 'resíduo' (candidato a zerar) |
+
 ### Estoques
 | Indicador | BI | Página | Como é obtido |
 |---|---|---|---|
