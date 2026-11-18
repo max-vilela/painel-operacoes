@@ -69,6 +69,8 @@ Links dos BIs: `https://bi.livioeoutro.com.br/Organization/2958af72-9c7b-4653-93
 
 ## 3. Fontes fora do portal
 
+> As cotações e o dólar aparecem na **faixa rolante do rodapé** (não são mais uma aba do carrossel). A faixa mostra de quando são as cotações e a hora da leitura.
+
 | Informação | Fonte | Link | Frequência |
 |---|---|---|---|
 | Cotação boi, soja e milho — Diamantino e Sapezal | Agrolink | https://www.agrolink.com.br/regional/mt/diamantino/cotacoes | 3x ao dia (8h30, 12h30, 17h30) |

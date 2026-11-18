@@ -14,11 +14,5 @@ window.DADOS = {
   //   { fazenda: "Galheiro", dado: "2026-11-04", chuvaDia: 6, chuva7d: 40, chuvaMes: 55, chuvaAno: 1590 }
   clima: [],
 
-  mercado: { pracas: ["Diamantino", "Sapezal", "MT (Imea)"], linhas: [] },
-
-  // Mensagens que passam no rodapé
-  avisos: [
-    "Bovinos, grãos, estoques e pessoas: lidos dos BIs a cada 2 h, das 8h30 às 18h30 (quantidades, sem valores).",
-    "Cotações: Agrolink (Diamantino, Sapezal) e Imea (média das praças de MT). Chuva: estimativa por modelo."
-  ]
+  mercado: { pracas: ["Diamantino", "Sapezal", "MT (Imea)"], linhas: [] }
 };
