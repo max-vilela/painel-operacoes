@@ -171,7 +171,8 @@ def _ok(dados, fonte):
     if fonte == "rh":
         return (v.get("rh") or {}).get("ativos") is not None
     if fonte == "plantio":
-        return bool(v.get("plantio"))
+        p = v.get("plantio") or {}
+        return bool(p.get("soja")) and bool(p.get("milho"))
     if fonte == "colheita":
         c = v.get("colheita") or {}
         return bool(c.get("soja")) and bool(c.get("milho"))
@@ -219,8 +220,10 @@ def mesclar_com_anterior(dados, agora):
             for k in ("diesel", "gasolina", "etanol"):
                 if not comb.get(k) and (pv.get("combustivel") or {}).get(k):
                     comb[k] = pv["combustivel"][k]
-        elif f == "colheita":
-            c, pc = dados["visao"].setdefault("colheita", {}), (ant.get("visao") or {}).get("colheita") or {}
+        elif f in ("colheita", "plantio"):
+            c, pc = dados["visao"].setdefault(f, {}), (ant.get("visao") or {}).get(f) or {}
+            if "planejadoHa" in pc:                              # bi.js antigo: plantio único (soja)
+                pc = {"soja": pc}
             for prod in ("soja", "milho"):                       # só a cultura que faltou volta do anterior
                 if not c.get(prod) and pc.get(prod):
                     c[prod] = pc[prod]

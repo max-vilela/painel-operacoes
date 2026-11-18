@@ -497,40 +497,50 @@ function barras(el, itens){
 
 /* ---------- PLANTIO E COLHEITA: safra em plantio + última colheita de soja e milho, por fazenda ---------- */
 function desenharPlantio(p, col){
-  const so = col.soja, mi = col.milho;
-  // ESQUERDA: safra em plantio. Barra de cada fazenda = quanto do planejado DELA já foi plantado (cheia = concluído).
-  if(p && p.planejadoHa){
-    const pct = Math.min(100, Math.round(p.plantadoHa / p.planejadoHa * 100));
-    $("pPlL").textContent = "Plantio · " + safraCurta(p.safra);
-    setNum("pPlan", Math.round(p.planejadoHa)); setNum("pPlt", Math.round(p.plantadoHa));
-    setNum("pPl", pct, n => n + "%");
-    const faz = [...p.fazendas].sort((a, b) => ordemFaz(a.fazenda) - ordemFaz(b.fazenda));
-    setHtmlSuave($("pPlFaz"), faz.map(f => {
-      const fp = f.planejadoHa ? Math.min(100, f.plantadoHa / f.planejadoHa * 100) : 0;
-      return `<div class="r"><span>${f.fazenda}</span>
-        <div class="t"><i style="width:${fp}%;--c:#7fd35a"></i></div>
-        <b>${fmt(Math.round(f.plantadoHa))} <small>/ ${fmt(Math.round(f.planejadoHa))}</small></b></div>`;
-    }).join(""));
-  } else { ["pPlan", "pPlt", "pPl"].forEach(id => setNum(id, null)); }
-  // DIREITA: última colheita de soja e de milho (sc/ha). Por fazenda, só o número e se ficou acima/abaixo da média.
-  for(const [id, c] of [["pSo", so], ["pMi", mi]]){
-    if(!c){ setNum(id, null); $(id + "A").textContent = ""; continue; }
-    // "MILHO SAFRINHA 26/26" -> "Milho safrinha 26"; "SOJA SAFRA 25/26" -> "Soja 25/26"
-    $(id + "L").textContent = safraCurta(c.safra).replace(/(\d\d)\/\1$/, "$1").replace(/^./, x => x.toUpperCase());
-    $(id).textContent = fmt1(c.scHa);
-    $(id + "A").innerHTML = `<b>${fmt(c.sacas)}</b> sc · ${fmt(Math.round(c.areaHa))} ha`;
-  }
-  const nomes = [...new Set([...(so ? so.fazendas : []), ...(mi ? mi.fazendas : [])].map(f => f.fazenda))]
-    .sort((a, b) => ordemFaz(a) - ordemFaz(b));
-  const ach = (c, n) => c && c.fazendas.find(f => f.fazenda === n);
-  const cel = (c, n) => {
-    const f = ach(c, n);
-    if(!f) return `<div class="v" style="color:var(--muted)">–<em></em></div>`;
-    const seta = f.scHa >= c.scHa ? '<em class="up">▲</em>' : '<em class="dn">▼</em>';
-    return `<div class="v">${fmt1(f.scHa)}${seta}</div>`;
+  const el = $("plGrid"); if(!el) return;
+  col = col || {};
+  // plantio por cultura {soja, milho}; bi.js antigo trazia um plantio só (soja)
+  p = p || {};
+  const plt = (p.soja || p.milho) ? p : (p.planejadoHa ? { soja: p } : {});
+  const ico = n => `<i class="ico">${svgIcone(n)}</i>`;
+  const vazio = (titulo, icone, cor) => `<section class="ec" style="--c:${cor}"><h4>${ico(icone)}${titulo}</h4><span class="n sem">–</span><div class="nota">sem leitura</div></section>`;
+  // "SOJA SAFRA 26/27" -> "safra 26/27"; "MILHO SAFRINHA 26/26" -> "safrinha 26"
+  const tag = r => { const t = safraCurta(r || "").replace(/^(soja|milho)\s+/i, "").replace(/(\d\d)\/\1$/, "$1"); return /^\d/.test(t) ? "safra " + t : t; };
+
+  // PLANTIO da safra mais recente da cultura: um número (% concluído) + barra; só nomeia fazenda se ainda faltar plantar
+  const cardPlantio = (d, cor) => {
+    if(!d || !d.planejadoHa) return vazio("Plantio", "broto", cor);
+    const pct = Math.min(100, Math.round(d.plantadoHa / d.planejadoHa * 100));
+    const faltam = (d.fazendas || []).filter(f => f.plantadoHa < f.planejadoHa - 0.5)
+      .sort((a, b) => (b.planejadoHa - b.plantadoHa) - (a.planejadoHa - a.plantadoHa));
+    const estado = faltam.length
+      ? "Faltam: " + faltam.slice(0, 2).map(f => `${f.fazenda} <b>${fmt(Math.round(f.planejadoHa - f.plantadoHa))}</b>`).join(" · ") + (faltam.length > 2 ? ` · +${faltam.length - 2}` : "") + " ha"
+      : `Todas as ${(d.fazendas || []).length} fazendas concluídas`;
+    return `<section class="ec" style="--c:${cor}"><h4>${ico("broto")}Plantio · ${tag(d.safra)}</h4>
+      <div class="linha1"><span class="n">${pct}<small>%</small></span><span class="sub">${fmt(Math.round(d.plantadoHa))} de ${fmt(Math.round(d.planejadoHa))} ha</span></div>
+      <div class="eb"><i style="width:${pct}%;background:${cor}"></i></div>
+      <div class="pst ${faltam.length ? "pend" : "ok"}">${estado}</div></section>`;
   };
-  setHtmlSuave($("pCoFaz"), `<div class="r cab"><span>sc/ha</span><div class="v"><i class="lg" style="--c:#35d07f;margin:0 .3vw 0 0"></i>soja</div><div class="v"><i class="lg" style="--c:#f2b33d;margin:0 .3vw 0 0"></i>milho</div></div>`
-    + nomes.map(n => `<div class="r"><span>${n}</span>${cel(so, n)}${cel(mi, n)}</div>`).join(""));
+
+  // COLHEITA da safra mais recente que já tem área colhida: sc/ha em destaque + ranking das fazendas
+  // (linha branca = média da cultura; barra clara = abaixo da média)
+  const cardColheita = (d, cor) => {
+    if(!d) return vazio("Colheita", "trigo", cor);
+    const fz = [...(d.fazendas || [])].sort((a, b) => b.scHa - a.scHa);
+    const max = Math.max(...fz.map(f => f.scHa), d.scHa);
+    const linhas = fz.map(f => `<div class="pr"><span>${f.fazenda}</span>
+      <div class="pt"><i class="${f.scHa >= d.scHa ? "" : "baixo"}" style="width:${f.scHa / max * 100}%"></i><u style="left:${d.scHa / max * 100}%"></u></div>
+      <b>${fmt1(f.scHa)}</b></div>`).join("");
+    return `<section class="ec" style="--c:${cor}"><h4>${ico("trigo")}Colheita · ${tag(d.safra)}</h4>
+      <div class="linha1"><span class="n">${fmt1(d.scHa)}<small>sc/ha</small></span><span class="sub">${fmt(d.sacas)} sc em ${fmt(Math.round(d.areaHa))} ha</span></div>
+      <div class="prs">${linhas}</div>
+      <div class="leg"><u></u>média · barra clara = abaixo</div></section>`;
+  };
+
+  // grade de 2 colunas e 3 linhas (título | plantio | colheita): soja e milho alinhados linha a linha
+  const cab = (nome, cor) => `<div class="chd" style="--c:${cor}">${nome}</div>`;
+  const S = "#35d07f", M = "#f2b33d";
+  setHtmlSuave(el, cab("Soja", S) + cab("Milho", M) + cardPlantio(plt.soja, S) + cardPlantio(plt.milho, M) + cardColheita(col.soja, S) + cardColheita(col.milho, M));
 }
 
 /* ---------- FUNCIONÁRIOS: só contagens ---------- */

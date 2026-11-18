@@ -47,9 +47,9 @@ Links dos BIs: `https://bi.livioeoutro.com.br/Organization/2958af72-9c7b-4653-93
 ### Plantio e colheita
 | Indicador | BI | Página | Como é obtido |
 |---|---|---|---|
-| Planejado / plantado / % por fazenda | Indicadores de Plantio | Plantio por Fazenda | Safra que o BI deixa selecionada (hoje SOJA SAFRA 26/27) |
-| Produtividade da soja (sc/ha, sacas, área) | Indicadores Colheita Soja | Produção por Fazenda - Sintetico | Período de produção selecionado no BI (hoje SOJA SAFRA 25/26) |
-| Produtividade do milho (sc/ha, sacas, área) | Indicadores Colheita Milho | Produção por Fazenda - Sintetico | Período selecionado no BI (hoje MILHO SAFRINHA 26/26) |
+| Planejado / plantado / % por fazenda (soja e milho) | Indicadores de Plantio | Plantio por Fazenda | Automático: o coletor (safras.py) escolhe a safra mais recente de cada cultura com área plantada > 0 (hoje SOJA SAFRA 26/27 e MILHO SAFRINHA 26/26) |
+| Produtividade da soja (sc/ha, sacas, área) | Indicadores Colheita Soja | Produção por Fazenda - Sintetico | Automático: safra mais recente com área colhida > 0 (hoje SOJA SAFRA 25/26) |
+| Produtividade do milho (sc/ha, sacas, área) | Indicadores Colheita Milho | Produção por Fazenda - Sintetico | Automático: safra mais recente com área colhida > 0 (hoje MILHO SAFRINHA 26/26) |
 
 ### Estoques
 | Indicador | BI | Página | Como é obtido |

@@ -226,18 +226,8 @@
   .car h2 #carIco{width:1.5em;height:1.5em;vertical-align:-.4em}
   .chuvaL b .ico{width:1.2em;height:1.2em}
   /* plantio e colheita: dois cartões lado a lado */
-  .pc2{display:grid;grid-template-columns:1fr 1fr;gap:1vw;flex:1;min-height:0}
-  .card{background:var(--panel2);border:1px solid var(--line);border-radius:.6vh;padding:1.4vh 1vw;display:flex;flex-direction:column;gap:1vh;min-height:0}
-  .card .ch{font-size:calc(1.6*var(--u));letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center}
-  .card .ch .ico{width:1.6em;height:1.6em}
-  .grande{display:flex;align-items:baseline;gap:.5vw;flex-wrap:wrap}
-  .grande span{font-size:calc(5*var(--u));font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-  .grande small{font-size:calc(1.6*var(--u));color:var(--muted)} .grande small b{color:var(--text)}
   .sub3{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--line);padding-bottom:.4vh}
   .sub3:empty{display:none}
-  .dois{display:grid;grid-template-columns:1fr 1fr;gap:.8vw}
-  .dois .sub3{border:0;text-transform:none;letter-spacing:0;padding:0}
-  .dois .grande{flex-wrap:nowrap} .dois .grande span{font-size:calc(4.2*var(--u))}
   /* mortes: duas colunas, mês | ano */
   .mcols{display:grid;grid-template-columns:1fr 1fr;gap:1vw;flex:1;min-height:0}
   .mcol{background:var(--panel2);border:1px solid var(--line);border-radius:.6vh;padding:1.2vh 1vw;display:flex;flex-direction:column;gap:.9vh;min-height:0}
@@ -286,6 +276,21 @@
   .tiles div{display:flex;flex-direction:column;gap:.4vh;min-width:0}
   .tiles > div > small{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
   .tiles .t2 .n{font-size:calc(3.8*var(--u))}
+  /* aba Plantio e colheita: plantio (faixa larga) + colheita de soja e de milho lado a lado */
+  #plGrid{grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr;gap:1.2vh 2.8vw}
+  .chd{font-size:calc(2*var(--u));font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--c);border-bottom:2px solid var(--c);padding-bottom:.5vh}
+  #plGrid .ec{gap:.9vh;padding-top:1vh;padding-bottom:1vh} #plGrid .ec .n{font-size:calc(4.8*var(--u))}
+  .ec .pst{font-size:calc(1.6*var(--u));color:var(--muted)} .ec .pst b{color:var(--warn)}
+  .ec .pst.ok{color:var(--accent)} .ec .pst.ok:before{content:"✓ "}
+  .ec .linha1{display:flex;align-items:baseline;gap:1vw;flex-wrap:wrap} .ec .linha1 .sub{font-size:calc(1.6*var(--u));color:var(--muted)}
+  .prs{display:flex;flex-direction:column;gap:.3vh;flex:1;min-height:0;justify-content:space-evenly;border-top:1px solid var(--line);padding-top:.6vh}
+  .pr{display:grid;grid-template-columns:7.2vw 1fr 3.8vw;gap:.7vw;align-items:center;font-size:calc(1.55*var(--u))}
+  .pr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .pr b{text-align:right;font-variant-numeric:tabular-nums}
+  .pt{position:relative;height:1.4vh;background:#0a1c14;border-radius:.4vh}
+  .pt i{display:block;height:100%;background:var(--c);border-radius:.4vh} .pt i.baixo{opacity:.45}
+  .pt u{position:absolute;top:-.3vh;bottom:-.3vh;width:2px;background:#e8f5ec}
+  .leg{font-size:calc(1.4*var(--u));color:var(--muted)}
+  .leg u{display:inline-block;width:2px;height:1.3em;background:#e8f5ec;vertical-align:middle;margin-right:.4vw}
   .rets2{display:grid;grid-template-columns:1fr 1fr;gap:1vw;flex:none}
   .retc{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.7vh .8vw}
   .retc h4{font-size:calc(1.4*var(--u));font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.3vh}
@@ -294,32 +299,5 @@
   .ret span{font-size:calc(1.65*var(--u));color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ret b{font-size:calc(1.75*var(--u));font-variant-numeric:tabular-nums} .retc:first-child .ret b{color:var(--accent2)} .retc:last-child .ret b{color:#59c3ff}
   .ret.vazio span{color:var(--muted);font-size:calc(1.4*var(--u))}
-  .pp{display:grid;grid-template-columns:repeat(3,1fr);gap:.6vw}
-  .pp div{display:flex;flex-direction:column}
-  .pp small{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-  .pp b{font-size:calc(3.6*var(--u));font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
-  .pp i{font-style:normal;font-size:calc(1.4*var(--u));color:var(--muted)}
-  .sub3.cols{display:flex;justify-content:space-between}
-  #sPlant .hb .r{grid-template-columns:6.6vw 1fr auto}
-  #sPlant .hb .r b{font-size:calc(1.65*var(--u));white-space:nowrap} #sPlant .hb .r b small{color:var(--muted);font-weight:400}
-  .hb2 .r .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
-  .hb2 .r .v em{font-style:normal;font-size:.75em;margin-left:.35vw;display:inline-block;width:1em}
-  .hb2 .r .v em.up{color:var(--accent)} .hb2 .r .v em.dn{color:var(--warn)}
-  .hb2 .r{grid-template-columns:1fr 4.6vw 4.6vw!important;border-bottom:1px solid #123526;padding-bottom:.6vh}
-  .hb2 .r.cab{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-  .hb2 .r.cab .c{display:flex;align-items:center}
-  .cult{font-size:calc(1.7*var(--u));color:var(--text);display:flex;align-items:center} .cult .lg{margin:0 .4vw 0 0}
-  #sPlant .hb .r{grid-template-columns:7.5vw 1fr 4.6vw;font-size:calc(1.75*var(--u))}
-  .hb2{display:flex;flex-direction:column;gap:.9vh}
-  .hb2 .r{display:grid;grid-template-columns:7.5vw 1fr 1fr;gap:.6vw;align-items:center;font-size:calc(1.75*var(--u))}
-  .hb2 .r > span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .hb2 .c{display:grid;grid-template-columns:1fr 2.6vw;gap:.3vw;align-items:center}
-  .hb2 .c .t{height:1.5vh;background:#0a1c14;border-radius:.4vh;overflow:hidden}
-  .hb2 .c .t i{display:block;height:100%;background:var(--c)}
-  .hb2 .c b{font-size:calc(1.6*var(--u));text-align:right;font-variant-numeric:tabular-nums}
-  table.pc{font-size:calc(1.9*var(--u))} table.pc th{font-size:calc(1.4*var(--u));text-align:center;line-height:1.3} table.pc th:first-child{text-align:left}
-  table.pc td{padding:.75vh .4vw;text-align:center} table.pc td:first-child{text-align:left}
-  table.pc td .bar{height:1vh;margin:.3vh 0 0} table.pc td small{color:var(--muted);font-size:calc(1.4*var(--u))}
-  table.pc tr.tot td{border-top:2px solid var(--line);font-weight:700;color:var(--accent2)}
   /* estoques: 4 cartões em 2 colunas */
     display:flex;flex-direction:column;justify-content:center;gap:.5vh;min-width:0;position:relative;overflow:hidden}
