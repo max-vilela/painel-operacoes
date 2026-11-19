@@ -7,6 +7,7 @@ O coletor filtra os GRUPOS DE PRODUTO que contêm os itens, abre a matriz inteir
 linhas (virtualizadas), e guarda os pedidos que ainda têm saldo.
 """
 import re
+from pathlib import Path
 
 from extracoes import abrir_pagina, frame_relatorio, num, _marcado
 
@@ -125,8 +126,19 @@ def _numeros(cel):
         return None
 
 
+IGNORAR = Path(__file__).with_name("compras_ignorar.txt")
+
+
+def pedidos_ignorados():
+    """Códigos de pedido listados em compras_ignorar.txt (eliminados por resíduo no Protheus; o BI não traz esse status)."""
+    if not IGNORAR.exists():
+        return set()
+    return {l.split("#")[0].strip().upper() for l in IGNORAR.read_text(encoding="utf-8").splitlines() if l.split("#")[0].strip()}
+
+
 def pedidos_com_saldo(linhas):
     out, fazenda, ped = [], None, None
+    ignorar = pedidos_ignorados()
     for cel in linhas:
         rot = cel[0]
         if FILIAL.match(rot):
@@ -137,7 +149,7 @@ def pedidos_com_saldo(linhas):
                 continue
             m = PROD.match(rot)
             cat = categoria_do(m["nome"], m["cod"][:4])
-            if not cat:
+            if not cat or ped["ped"].upper() in ignorar:
                 continue
             out.append({"categoria": cat, "produto": m["nome"], "fazenda": re.sub(r"^\d\d - (FAZENDA |ESCRITORIO )?", "", fazenda).title(),
                         "pedido": ped["ped"], "fornecedor": ped["forn"].title(), "emissao": ped["emi"],

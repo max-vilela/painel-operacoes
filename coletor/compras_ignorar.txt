@@ -1,0 +1,4 @@
+# Pedidos de compra que NÃO devem aparecer na aba Compras do painel (um código por linha).
+# Use para pedidos com status "PC ELIMINADO POR RESÍDUO" no Protheus: o BI de Compras não traz esse status e
+# continua mostrando o saldo deles. Depois do código, pode escrever um comentário depois do #.
+PNCZBY   # Mato Grosso, 29/04/2025, fertilizante cloreto de potássio: eliminado por resíduo (informado em 19/11/2026)
