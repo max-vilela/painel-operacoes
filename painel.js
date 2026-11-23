@@ -285,8 +285,9 @@ function desenharGraos(lista){
   const venc = s => s.split("/").reverse().join("");   // "dd/mm/aaaa" -> "aaaammdd"
   const abertos = lista.flatMap(g => g.contratos.map(c => ({ ...c, produto: g.produto })))
     .filter(c => c.contratadoSacas - c.entregueSacas > 0)
-    .sort((a, b) => (a.contratadoSacas - a.entregueSacas) - (b.contratadoSacas - b.entregueSacas)   // menor saldo (mais perto de acabar) no topo
-      || venc(a.vence).localeCompare(venc(b.vence)) || a.ctr.localeCompare(b.ctr));       // empate: vencimento, depois código
+    .sort((a, b) => ((b.entregueSacas > 0) - (a.entregueSacas > 0))                                  // 1º: quem já teve saída fica no topo
+      || (a.contratadoSacas - a.entregueSacas) - (b.contratadoSacas - b.entregueSacas)              // 2º: menor saldo (mais perto de concluir)
+      || venc(a.vence).localeCompare(venc(b.vence)) || a.ctr.localeCompare(b.ctr));                 // empate: vencimento, depois código
   $("gContratos").classList.toggle("denso", abertos.length > 7);   // muitos contratos: tira a barrinha para caberem
   $("gPag").textContent = !abertos.length ? "" : abertos.length > CFG.contratosNaTela ? `mostrando ${CFG.contratosNaTela} de ${abertos.length} em aberto` : `${abertos.length} em aberto`;
   setHtmlSuave($("gContratos"), abertos.length ? abertos.slice(0, CFG.contratosNaTela).map(c => {
