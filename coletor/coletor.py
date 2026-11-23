@@ -44,12 +44,14 @@ RELATORIOS = {
 }
 
 
-def abrir(p, headless):
-    """Chrome instalado na máquina, com perfil persistente (mantém o login entre execuções)."""
+def abrir(p, headless, porta_cdp=None):
+    """Chrome instalado na máquina, com perfil persistente (mantém o login entre execuções).
+    `porta_cdp`: abre também a porta de depuração, para a coleta ler vários relatórios em abas paralelas."""
     PERFIL.mkdir(parents=True, exist_ok=True)
     return p.chromium.launch_persistent_context(
         str(PERFIL), channel="chrome", headless=headless,
         viewport={"width": 1920, "height": 1080}, locale="pt-BR",
+        args=[f"--remote-debugging-port={porta_cdp}"] if porta_cdp else [],
     )
 
 
@@ -189,7 +191,7 @@ CHAVES_VISAO = {"estoque": ["rebanho", "estoqueGraos", "combustivel"], "rh": ["r
                 "colheita": ["colheita"], "mortes": ["mortes"], "compras": ["compras"]}
 
 
-def mesclar_com_anterior(dados, agora):
+def mesclar_com_anterior(dados, agora, puladas=()):
     """Grava em dados['fontes'] a hora em que CADA parte foi lida e, se uma parte falhou, mantém o último valor bom dela
     (com a hora antiga) e a lista em dados['falhas']. Assim uma leitura que falha não apaga o número do painel,
     e o painel mostra de quando o dado é e que a leitura falhou."""
@@ -206,7 +208,8 @@ def mesclar_com_anterior(dados, agora):
         if _ok(dados, f):
             fontes[f] = agora
             continue
-        falhas.append(f)
+        if f not in puladas:                   # puladas = ainda não venceram (frequência da fonte): não é falha
+            falhas.append(f)
         fontes[f] = fontes_ant.get(f) or base or None
         if f == "bovinos" and ant.get("bovinos"):
             dados["bovinos"] = ant["bovinos"]
@@ -239,18 +242,40 @@ def mesclar_com_anterior(dados, agora):
         print("  AVISO: leitura falhou, mantido o último valor de:", ", ".join(falhas))
 
 
-def cmd_coletar(_):
-    from extracoes import coletar_tudo  # escrito depois do dump de cada página
+def cmd_coletar(args):
+    import orquestra
+    from extracoes import negociado_no_estoque
 
+    try:
+        anterior = json.loads(SAIDA.read_text(encoding="utf-8").split("window.DADOS_BI = ", 1)[1].rstrip().rstrip(";"))
+    except Exception:
+        anterior = {}
+    nomes = orquestra.vencidas(anterior, getattr(args, "tudo", False))
+    puladas = [f for f in FONTES if f not in nomes]
+    print("lendo:", ", ".join(nomes), "| puladas (ainda não venceram):", ", ".join(puladas) or "nenhuma")
+    paralelo = max(1, int(getattr(args, "paralelo", 3)))
     with sync_playwright() as p:
-        ctx = abrir(p, headless=True)
+        ctx = abrir(p, headless=True, porta_cdp=orquestra.PORTA_CDP if paralelo > 1 else None)
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         if not garantir_login(page):
             sys.exit("Sem login e não deu para entrar sozinho. Rode: python coletor.py login")
-        dados = coletar_tudo(page, url_relatorio, esperar_relatorio, esta_logado)
+        env = {"url": url_relatorio, "esperar": esperar_relatorio, "logado": esta_logado, "ok": _ok}
+        dados, tempos, erros = orquestra.coletar(page, env, nomes, paralelo)
         ctx.close()
+    if erros:
+        print("  ERROS na coleta:", "; ".join(erros))
+        if any("Sem login" in e for e in erros):
+            sys.exit("Sem login: rode python coletor.py login")
+    saldo = dados.pop("_saldo_por_safra", None)
+    dados.setdefault("visao", {})
+    if saldo is not None and (dados["visao"].get("estoqueGraos") or {}):
+        negociado_no_estoque(dados["visao"], saldo)
+    elif (dados["visao"].get("estoqueGraos") or {}) and (anterior.get("visao") or {}).get("estoqueGraos"):
+        for prod, e in dados["visao"]["estoqueGraos"].items():    # grãos não leu agora: mantém o negociado de antes
+            e["negociado"] = ((anterior["visao"]["estoqueGraos"].get(prod) or {}).get("negociado", 0))
+    dados["tempos"] = tempos
     dados["atualizadoEm"] = datetime.now().astimezone().isoformat(timespec="seconds")
-    mesclar_com_anterior(dados, dados["atualizadoEm"])
+    mesclar_com_anterior(dados, dados["atualizadoEm"], puladas)
     SAIDA.write_text(
         "// GERADO por coletor/coletor.py. Não editar à mão.\n"
         "window.DADOS_BI = " + json.dumps(dados, ensure_ascii=False, indent=1) + ";\n",
@@ -258,6 +283,11 @@ def cmd_coletar(_):
     )
     print("gravado", SAIDA)
     publicar(SAIDA)
+    try:                                  # painel no Vercel (link interno): uma falha aqui não derruba a coleta
+        import publicar_vercel
+        print("vercel:", "publicado" if publicar_vercel.publicar() else "FALHOU (o painel do SharePoint foi atualizado normalmente)")
+    except Exception as e:
+        print("  AVISO vercel:", str(e)[:150])
 
 
 def main():
@@ -268,7 +298,10 @@ def main():
     d.add_argument("relatorio", choices=RELATORIOS)
     d.add_argument("pagina", nargs="?")
     d.set_defaults(f=cmd_dump)
-    sub.add_parser("coletar").set_defaults(f=cmd_coletar)
+    c = sub.add_parser("coletar")
+    c.add_argument("--tudo", action="store_true", help="lê todas as fontes, ignorando a frequência de cada uma")
+    c.add_argument("--paralelo", type=int, default=3, help="quantas abas lendo ao mesmo tempo (1 = uma por vez)")
+    c.set_defaults(f=cmd_coletar)
     args = ap.parse_args()
     if args.cmd == "coletar":
         registrar_em_arquivo()

@@ -41,3 +41,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+    try:                                   # o mesmo código vai também para o painel no Vercel (link interno)
+        import publicar_vercel
+        print("vercel:", "publicado" if publicar_vercel.publicar() else "FALHOU")
+    except Exception as e:
+        print("AVISO vercel:", str(e)[:150])

@@ -6,6 +6,7 @@
    ============================================================ */
 const CFG = {
   dadosMin: 10,        // relê data.js e bi.js (arquivos LOCAIS: custa quase nada). Quem pesa é o coletor.
+  radarZoomLargo: 6,   // zoom do radar enquanto uma aba larga (compras) deixa o mapa estreito: assim todas as fazendas continuam à vista
   radarMin: 10,        // recarrega o mapa de radar
   previsaoMin: 60,     // previsão de chuva 5 dias (Open-Meteo)
   climaAtrasoDias: 1,  // chuva medida mais velha que isso fica em laranja ("há N d")
@@ -111,10 +112,33 @@ function atualizarRotulos(){
   });
 }
 
+// O radar mudou de tamanho: depois da transição do layout, recentra o contorno das fazendas e recarrega o Windy
+// (que não se recentra sozinho ao ser redimensionado), para os dois continuarem alinhados.
+let timerRadar = null, ultimoTamanhoMapa = "";
+const zoomRadar = () => document.querySelector(".app").classList.contains("largo") ? CFG.radarZoomLargo : CFG.radarZoom;
+function realinharRadar(){
+  clearTimeout(timerRadar);
+  timerRadar = setTimeout(() => {
+    if(mapa && centroMapa){ mapa.invalidateSize({ animate:false }); mapa.setView([centroMapa.lat, centroMapa.lon], zoomRadar(), { animate:false }); }
+    renderRadar();
+  }, 500);
+}
+// Reage ao tamanho REAL do quadro do radar (e não a um tempo fixo): quando a transição do layout termina e o tamanho
+// muda, o contorno das fazendas e o Windy são refeitos com o mesmo centro e zoom.
+(function(){
+  const quadro = document.querySelector(".map");
+  if(!quadro || typeof ResizeObserver === "undefined") return;
+  new ResizeObserver(() => {
+    const t = Math.round(quadro.clientWidth) + "x" + Math.round(quadro.clientHeight);
+    if(ultimoTamanhoMapa && t !== ultimoTamanhoMapa) realinharRadar();
+    ultimoTamanhoMapa = t;
+  }).observe(quadro);
+})();
+
 function renderRadar(){
   iniciarMapa();
   const c = centroMapa || centroDasFazendas();
-  $("radar").src = `https://embed.windy.com/embed2.html?lat=${c.lat.toFixed(4)}&lon=${c.lon.toFixed(4)}&zoom=${CFG.radarZoom}`
+  $("radar").src = `https://embed.windy.com/embed2.html?lat=${c.lat.toFixed(4)}&lon=${c.lon.toFixed(4)}&zoom=${zoomRadar()}`
     + `&level=surface&overlay=radar&menu=&message=&marker=&calendar=now&type=map&location=coordinates&detail=`
     + `&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1&t=${Date.now()}`;
   $("radarAtual").textContent = "Windy · recarregado " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
@@ -325,8 +349,10 @@ function proximoSlide(){
   slides.forEach(x => { if(x !== s && x !== ant) x.classList.remove("on", "sai"); });
   if(ant && ant !== s){ ant.classList.remove("on"); ant.classList.add("sai"); setTimeout(() => ant.classList.remove("sai"), 650); }
   s.classList.add("on");
-  document.querySelector(".app").classList.toggle("largo", !!s.dataset.largo);   // abas largas (compras) espremem o radar
-  if(mapa) setTimeout(() => mapa.invalidateSize(), 80);
+  const app = document.querySelector(".app"), largo = !!s.dataset.largo;          // abas largas (compras) espremem o radar
+  if(app.classList.contains("largo") !== largo){
+    app.classList.toggle("largo", largo);
+  }
   setTextoSuave($("carTitulo"), s.dataset.titulo);
   atualizarIdade();
   $("carIco").innerHTML = svgIcone(s.dataset.ico);

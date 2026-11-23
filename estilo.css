@@ -11,7 +11,7 @@
   .app{display:grid;height:100vh;padding:1vh 1vw;gap:1vh 1vw;
     grid-template-rows:6vh 1fr minmax(14.4vh,auto) 4.8vh;
     grid-template-columns:54fr 46fr;transition:grid-template-columns .5s}
-  .app.largo{grid-template-columns:24fr 76fr}
+  .app.largo{grid-template-columns:30fr 70fr}
   header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;
     border:1px solid var(--line);background:var(--panel);padding:0 1.2vw;border-radius:.6vh}
   header h1{font-size:calc(2.69*var(--u));letter-spacing:.25em;text-transform:uppercase;color:var(--accent)}
@@ -318,3 +318,5 @@
   .cpl.res .cpn{color:#59c3ff}
   .cpv{text-align:right;white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}
   .cpl.res .cpv{color:#59c3ff}
+  /* radar estreito (aba Compras): rótulos das fazendas menores para caberem todas no quadro */
+  .app.largo .rotulo{font-size:calc(1.45*var(--u)) !important;padding:.15vh .35vw !important} .app.largo .rotulo em{margin-left:.15vw}
