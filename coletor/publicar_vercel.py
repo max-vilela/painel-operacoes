@@ -64,27 +64,19 @@ def mostrar(txt):
     print(txt.encode("ascii", "replace").decode())
 
 
-def token_da_cli():
-    r"""Login da CLI (npx vercel login) guardado em %APPDATA%\com.vercel.cli\Data\auth.json. Lido aqui porque a tarefa
-    agendada roda sem as variáveis de ambiente do usuário e a CLI não achava o login sozinha. Nunca é impresso."""
-    for base in (os.environ.get("APPDATA"), str(Path.home() / "AppData" / "Roaming")):
-        if not base:
-            continue
-        arq = Path(base) / "com.vercel.cli" / "Data" / "auth.json"
-        if arq.exists():
-            try:
-                return json.loads(arq.read_text(encoding="utf-8")).get("token")
-            except (ValueError, OSError):
-                return None
-    return None
-
-
 def vercel(*args, check=True):
     npx = shutil.which("npx") or "npx"
     env = os.environ.copy()
-    tok = token_da_cli()
-    if tok:
-        env["VERCEL_TOKEN"] = tok
+    # A tarefa agendada roda sem as variáveis de ambiente do usuário e a CLI não achava o login (guardado em
+    # %APPDATA%\com.vercel.cli, com renovação automática a cada ~8 h). Aponta para a pasta certa e deixa a CLI renovar.
+    env.setdefault("APPDATA", str(Path.home() / "AppData" / "Roaming"))
+    env.setdefault("USERPROFILE", str(Path.home()))
+    env.setdefault("HOME", str(Path.home()))
+    # Fora do console (tarefa agendada) a CLI às vezes não enxerga o login interativo. Alternativa estável: um token de
+    # acesso da conta Vercel em coletor/vercel_token.txt (não versionado) ou na variável VERCEL_TOKEN.
+    arq = Path(__file__).with_name("vercel_token.txt")
+    if arq.exists() and arq.read_text(encoding="utf-8").strip():
+        env["VERCEL_TOKEN"] = arq.read_text(encoding="utf-8").strip()
     return subprocess.run([npx, "--yes", "vercel@latest", *args], cwd=SITE, capture_output=True, text=True, env=env,
                           encoding="utf-8", errors="replace", check=check, timeout=600)
 
