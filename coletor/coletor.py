@@ -39,6 +39,8 @@ RELATORIOS = {
     "plantio": "55cf318b-874c-4c2c-8ed8-a4b901ccd4f9",      # Indicadores de Plantio
     "colheita_soja": "e54486e0-b7ff-4bba-a0a8-c96f3ef61f94",  # Indicadores Colheita Soja
     "colheita_milho": "a48e797b-fd6b-434f-9fa8-c96bd6e3efcc", # Indicadores Colheita Milho
+    "ativos": "7def702b-200c-4f52-8108-d217b456fe9e",         # Ativo Fixo (quantidade de máquinas e ativos)
+    "invest": "05b9baf3-7931-4787-abff-de2fb6351c06",         # Investimentos (melhorias da fazenda)
     "compras": "dbe070ab-7322-4ded-ae7e-1c647798e5a9",       # Compras (pedidos x documento de entrada)
     "mortes": "d61b96ea-a906-4141-9b72-ceccdae57dfa",       # Mortes (página inicial, PERIODO = ano)
 }
@@ -180,15 +182,23 @@ def _ok(dados, fonte):
         c = v.get("colheita") or {}
         return bool(c.get("soja")) and bool(c.get("milho"))
     if fonte == "mortes":
-        return (v.get("mortes") or {}).get("total") is not None
+        m = v.get("mortes") or {}
+        return m.get("total") is not None and bool(m.get("mes"))      # sem a parte do mês a coluna do painel fica vazia
+    if fonte == "ativos":
+        t = (v.get("ativos") or {}).get("tipos") or []
+        return len(t) >= 15 and bool((v.get("ativos") or {}).get("porFilial"))
+    if fonte == "investimentos":
+        i = v.get("investimentos") or {}
+        return bool(i.get("total")) and isinstance(i.get("grupos"), list)
     if fonte == "compras":
         return isinstance(v.get("compras"), list)       # lista vazia é resultado válido (nada com saldo)
     return True
 
 
-FONTES = ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes", "compras"]
+FONTES = ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes", "compras", "ativos", "investimentos"]
 CHAVES_VISAO = {"estoque": ["rebanho", "estoqueGraos", "combustivel"], "rh": ["rh"], "plantio": ["plantio"],
-                "colheita": ["colheita"], "mortes": ["mortes"], "compras": ["compras"]}
+                "colheita": ["colheita"], "mortes": ["mortes"], "compras": ["compras"],
+                "ativos": ["ativos"], "investimentos": ["investimentos"]}
 
 
 def mesclar_com_anterior(dados, agora, puladas=()):
@@ -250,7 +260,8 @@ def cmd_coletar(args):
         anterior = json.loads(SAIDA.read_text(encoding="utf-8").split("window.DADOS_BI = ", 1)[1].rstrip().rstrip(";"))
     except Exception:
         anterior = {}
-    nomes = orquestra.vencidas(anterior, getattr(args, "tudo", False))
+    so = [x.strip() for x in (getattr(args, "so", "") or "").split(",") if x.strip()]
+    nomes = [n for n in orquestra.ORDEM if n in so] if so else orquestra.vencidas(anterior, getattr(args, "tudo", False))
     puladas = [f for f in FONTES if f not in nomes]
     print("lendo:", ", ".join(nomes), "| puladas (ainda não venceram):", ", ".join(puladas) or "nenhuma")
     paralelo = max(1, int(getattr(args, "paralelo", 3)))
@@ -300,6 +311,7 @@ def main():
     d.set_defaults(f=cmd_dump)
     c = sub.add_parser("coletar")
     c.add_argument("--tudo", action="store_true", help="lê todas as fontes, ignorando a frequência de cada uma")
+    c.add_argument("--so", default="", help="lê só estas fontes (separadas por vírgula), ex.: --so compras,mortes")
     c.add_argument("--paralelo", type=int, default=3, help="quantas abas lendo ao mesmo tempo (1 = uma por vez)")
     c.set_defaults(f=cmd_coletar)
     args = ap.parse_args()

@@ -166,7 +166,7 @@ def compras(page, esperar):
     abrir_pagina(page, PAGINA, esperar)
     faltou = selecionar_grupos(page, GRUPOS)
     if faltou:
-        print("  AVISO compras: grupos não achados:", faltou)
+        raise RuntimeError("compras: grupos de produto não achados no filtro: " + ", ".join(g[:4] for g in faltou))   # sessão/filtro instável: repete
     esperar(page)
     _expandir_tudo(page)
     linhas = _linhas_matriz(page)

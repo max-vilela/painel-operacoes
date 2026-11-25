@@ -130,6 +130,7 @@ function realinharRadar(){
   if(!quadro || typeof ResizeObserver === "undefined") return;
   new ResizeObserver(() => {
     const t = Math.round(quadro.clientWidth) + "x" + Math.round(quadro.clientHeight);
+    if(!quadro.clientWidth){ ultimoTamanhoMapa = "0"; return; }   // radar escondido (aba cheia): refaz quando voltar
     if(ultimoTamanhoMapa && t !== ultimoTamanhoMapa) realinharRadar();
     ultimoTamanhoMapa = t;
   }).observe(quadro);
@@ -288,7 +289,7 @@ function desenharGraos(lista){
     .sort((a, b) => ((b.entregueSacas > 0) - (a.entregueSacas > 0))                                  // 1º: quem já teve saída fica no topo
       || (a.contratadoSacas - a.entregueSacas) - (b.contratadoSacas - b.entregueSacas)              // 2º: menor saldo (mais perto de concluir)
       || venc(a.vence).localeCompare(venc(b.vence)) || a.ctr.localeCompare(b.ctr));                 // empate: vencimento, depois código
-  $("gContratos").classList.toggle("denso", abertos.length > 7);   // muitos contratos: tira a barrinha para caberem
+  $("gContratos").classList.toggle("denso", abertos.length > 8);   // muitos contratos: tira a barrinha para caberem   // muitos contratos: tira a barrinha para caberem
   $("gPag").textContent = !abertos.length ? "" : abertos.length > CFG.contratosNaTela ? `mostrando ${CFG.contratosNaTela} de ${abertos.length} em aberto` : `${abertos.length} em aberto`;
   setHtmlSuave($("gContratos"), abertos.length ? abertos.slice(0, CFG.contratosNaTela).map(c => {
     const saldo = c.contratadoSacas - c.entregueSacas;
@@ -351,6 +352,7 @@ function proximoSlide(){
   if(ant && ant !== s){ ant.classList.remove("on"); ant.classList.add("sai"); setTimeout(() => ant.classList.remove("sai"), 650); }
   s.classList.add("on");
   const app = document.querySelector(".app"), largo = !!s.dataset.largo;          // abas largas (compras) espremem o radar
+  app.classList.toggle("cheio", !!s.dataset.cheio);                               // aba cheia (vendas): o radar sai da tela
   if(app.classList.contains("largo") !== largo){
     app.classList.toggle("largo", largo);
   }
@@ -383,10 +385,10 @@ function textoIdade(iso){
   return { quando, dur, min };
 }
 // De que fonte vem cada assunto do carrossel (a idade mostrada é a da fonte MAIS ANTIGA do assunto)
-const FONTE_ABA = { sBov: ["bovinos"], sMortes: ["mortes"], sGraos: ["graos"], sPlant: ["plantio", "colheita"],
-                    sEst: ["estoque", "graos"], sCompras: ["compras"], sRH: ["rh"] };
+const FONTE_ABA = { sVendas: ["graos", "bovinos"], sMortes: ["mortes"], sPlant: ["plantio", "colheita"],
+                    sEst: ["estoque", "graos"], sCompras: ["compras"], sFrota: ["ativos"], sInvest: ["investimentos"], sRH: ["rh"] };
 const ROTULO_FONTE = { bovinos: "bovinos", graos: "grãos", estoque: "estoques", rh: "funcionários", plantio: "plantio",
-                       colheita: "colheita", mortes: "mortes", compras: "compras", mercado: "cotações" };
+                       colheita: "colheita", mortes: "mortes", compras: "compras", ativos: "máquinas e ativos", investimentos: "investimentos", mercado: "cotações" };
 function atualizarIdade(){
   const el = $("idade"), aba = slides[slideAtual], d = window.DADOS;
   if(!el || !aba || !d) return;
@@ -449,7 +451,7 @@ async function carregarDados(){
   // Hora em que cada fonte foi lida pela última vez (coletor grava bi.fontes; coletas antigas: usa a hora geral)
   const f = (bi && bi.fontes) || {};
   d.fontes = {};
-  ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes", "compras"].forEach(k => d.fontes[k] = f[k] || (bi && bi.atualizadoEm) || null);
+  ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes", "compras", "ativos", "investimentos"].forEach(k => d.fontes[k] = f[k] || (bi && bi.atualizadoEm) || null);
   d.fontes.mercado = (d.mercado && d.mercado.atualizadoEm) || null;
   d.falhas = (bi && bi.falhas) || [];
   render(d); desenharFaixa(bi && bi.visao); atualizarStatus();
@@ -514,6 +516,8 @@ function desenharFaixa(v){
   desenharRH(v.rh);
   desenharMortes(v.mortes);
   desenharCompras(v.compras);
+  desenharFrota(v.ativos);
+  desenharInvest(v.investimentos);
 }
 
 const fmt1 = n => n.toLocaleString("pt-BR", { minimumFractionDigits:1, maximumFractionDigits:1 });
@@ -703,4 +707,48 @@ function desenharCompras(lista){
     return `<section class="cpc"><h4>${cat}${r ? `<span class="cpz">${r} p/ zerar</span>` : ""}</h4>${linhas}${extra > 0 ? `<div class="cpx">+${extra} pedido${extra > 1 ? "s" : ""} com saldo</div>` : ""}</section>`;
   };
   setHtmlSuave(el, cats.map(cartao).join("") || '<div class="nota">nenhum pedido com saldo</div>');
+}
+
+
+/* ---------- MÁQUINAS E ATIVOS (BI Ativo Fixo, 1 leitura por dia) ---------- */
+const MAQUINAS = ["Tratores", "Colheitadeiras", "Pulverizadores", "Plantadeiras", "Plataformas", "Misturadores", "Distribuidores", "Implementos",
+  "Maquinas Pesadas", "Caminhões", "Caminhonetes/Utilitários", "Onibus", "Motocicletas", "Aviões", "Geradores"];
+const ROT_MAQ = { "Maquinas Pesadas": "Máquinas pesadas", "Caminhonetes/Utilitários": "Caminhonetes", "Onibus": "Ônibus" };
+const TIPOS_TAB = ["Tratores", "Colheitadeiras", "Pulverizadores", "Plantadeiras", "Plataformas"];
+const titulo = t => t.toLowerCase().replace(/(^|\s)(?!de|da|do|e)\S/g, c => c.toUpperCase());
+function desenharFrota(a){
+  const g = $("frGrid"); if(!g) return;
+  if(!a || !a.tipos){ setHtmlSuave(g, '<div class="nota">sem leitura</div>'); setHtmlSuave($("frTab"), ""); return; }
+  const q = Object.fromEntries(a.tipos.map(t => [t.nome, t.qtd]));
+  const total = MAQUINAS.reduce((s, n) => s + (q[n] || 0), 0);
+  const destaque = new Set(["Tratores", "Colheitadeiras", "Pulverizadores", "Plantadeiras"]);
+  setHtmlSuave(g, `<div class="frT"><small>Máquinas, veículos e implementos</small><b>${fmt(total)}</b></div>` +
+    MAQUINAS.filter(n => q[n] != null).map(n => `<div class="frC${destaque.has(n) ? " d" : ""}"><b>${fmt(q[n])}</b><span>${ROT_MAQ[n] || n}</span></div>`).join(""));
+  const outros = Object.keys(q).filter(n => !MAQUINAS.includes(n)).sort((x, y) => q[y] - q[x]);
+  $("frNota").textContent = outros.length ? "também no cadastro: " + outros.map(n => `${n.replace("Reservatorios/Poços", "Reservatórios/poços").replace(/Informática.*/, "Informática")} ${fmt(q[n])}`).join(" · ") : "";
+  const fz = (a.porFilial || []).filter(f => !/escrit/i.test(f.filial));
+  const cab = n => (ROT_MAQ[n] || n).replace("Colheitadeiras", "Colheit.").replace("Pulverizadores", "Pulveriz.").replace("Plantadeiras", "Plantad.");
+  setHtmlSuave($("frTab"), fz.length ? `<div class="frL cab"><span></span>${TIPOS_TAB.map(n => `<b>${cab(n)}</b>`).join("")}</div>` +
+    fz.map(f => `<div class="frL"><span>${titulo(f.filial.replace(/^FAZENDA /i, ""))}</span>${TIPOS_TAB.map(n => `<b>${f.tipos[n] != null ? fmt(f.tipos[n]) : "–"}</b>`).join("")}</div>`).join("") : '<div class="nota">sem leitura por fazenda</div>');
+}
+
+/* ---------- INVESTIMENTOS EM MELHORIAS DA FAZENDA (BI Investimentos, 1 leitura por dia; sem máquinas) ---------- */
+const NOME_GRUPO = { "6001": "Armazéns, silos e galpões", "6003": "Cercas e currais", "6021": "Alojamentos", "6022": "Balanças", "6023": "Barracões",
+  "6024": "Cantinas", "6025": "Casas de funcionários", "6028": "Edificações", "6036": "Posto de abastecimento", "6037": "Rede de comunicação", "6099": "Áreas de reg. ambiental" };
+const reaisMi = n => n >= 1e6 ? "R$ " + (n / 1e6).toLocaleString("pt-BR", { maximumFractionDigits:2 }) + " mi" : n >= 1e3 ? "R$ " + fmt(Math.round(n / 1e3)) + " mil" : "R$ " + fmt(Math.round(n));
+function desenharInvest(i){
+  const k = $("ivK"); if(!k) return;
+  if(!i || !i.grupos){ setHtmlSuave(k, '<div class="nota">sem leitura</div>'); return; }
+  const pct = i.total ? Math.round(i.melhoriasValor / i.total * 100) : null;
+  setHtmlSuave(k, `<div class="ivk"><small>Investido em melhorias · ${i.ano}</small><b>${reaisMi(i.melhoriasValor)}</b></div>
+    <div class="ivk"><small>Obras e benfeitorias</small><b>${fmt(i.melhoriasObras)}</b></div>
+    <div class="ivk"><small>Do investimento total do ano</small><b>${pct != null ? pct + "%" : "–"}</b></div>`);
+  const max = Math.max(...i.grupos.map(g => g.valor), 1);
+  const mostrar = i.grupos.slice(0, 8), resto = i.grupos.length - mostrar.length;
+  setHtmlSuave($("ivGrupos"), mostrar.map(g => `<div class="ivg"><div class="t"><b>${NOME_GRUPO[g.codigo] || titulo(g.grupo)}</b><span>${fmt(g.obras)} ${g.obras === 1 ? "obra" : "obras"}</span></div>
+    <div class="pt"><i style="width:${Math.max(3, g.valor / max * 100)}%;background:var(--accent)"></i></div><em>${reaisMi(g.valor)}</em></div>`).join("") +
+    (resto > 0 ? `<div class="cpx">+${resto} grupo${resto > 1 ? "s" : ""} menores</div>` : ""));
+  const maxF = Math.max(...(i.porFilial || []).map(f => f.valor), 1);
+  setHtmlSuave($("ivFaz"), (i.porFilial || []).slice(0, 6).map(f => `<div class="r"><span>${f.filial}</span><div class="b"><i style="width:${f.valor / maxF * 100}%"></i></div><b>${reaisMi(f.valor)}</b></div>`).join(""));
+  setHtmlSuave($("ivRec"), (i.maiores || []).slice(0, 5).map((r, n) => `<div class="ivr"><span>${n + 1}º</span><b>${titulo(r.patrimonio.replace(/^\d+\s*-\s*/, ""))}</b><small>${r.filial}</small><em>${reaisMi(r.valor)}</em></div>`).join(""));
 }

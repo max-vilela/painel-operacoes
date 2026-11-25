@@ -176,10 +176,10 @@
   .emb .dia .tt{font-size:calc(2.3*var(--u));font-variant-numeric:tabular-nums;text-align:right}
   .emb .dia.tot{flex:0 0 auto;border-top:2px solid var(--line);border-bottom:0;padding:.5vh 0;color:var(--accent2)} .emb .dia.tot .its{color:var(--muted)}
   .emb .dia.sum{flex:0 0 auto;border:0;padding:.2vh 0;color:var(--muted)} .emb .dia.sum .d,.emb .dia.sum .tt{font-size:calc(1.7*var(--u));font-weight:400}
-  #sBov #bReb{display:none}   /* o rebanho já está na aba Estoques: aqui o espaço é da lista de embarques */
-  #sBov .big3 .kpi{padding:.8vh 1vw} #sBov .big3 .kpi .v{font-size:calc(4.6*var(--u))}
-  #sBov tr.tot td{border-top:1px solid var(--line);font-weight:700;color:var(--accent2);font-size:calc(1.7*var(--u))}
-  #sBov tr.sum td{color:var(--muted)}
+  #sVendas #bReb{display:none}   /* o rebanho já está na aba Estoques: aqui o espaço é da lista de embarques */
+  #sVendas .big3 .kpi{padding:.8vh 1vw} #sVendas .big3 .kpi .v{font-size:calc(4.6*var(--u))}
+  #sVendas tr.tot td{border-top:1px solid var(--line);font-weight:700;color:var(--accent2);font-size:calc(1.7*var(--u))}
+  #sVendas tr.sum td{color:var(--muted)}
   .gcols{display:grid;grid-template-columns:1fr 1fr;gap:1vw}
   .gcol{background:var(--panel2);border:1px solid var(--line);border-radius:.5vh;padding:.9vh 1vw}
   .gcol .p{display:flex;justify-content:space-between;align-items:baseline;gap:.8vw}
@@ -190,10 +190,10 @@
   .gcol .bar{height:1.2vh;margin:.6vh 0 .3vh}
   .gcol .m{display:flex;justify-content:space-between;font-size:calc(1.5*var(--u));color:var(--muted)}
   .gcol .m b{color:var(--text);font-weight:600}
-  #sGraos .ctr .t{font-size:calc(1.65*var(--u))} #sGraos .ctr .t span,#sGraos .ctr .m{font-size:calc(1.4*var(--u))}
-  #sGraos .ctr{padding:.12vh 0;line-height:1.15} #sGraos .ctr .bar{height:.5vh;margin:.1vh 0} #sGraos .ctr .m{margin-top:0}
-  #sGraos #gContratos{display:flex;flex-direction:column;gap:.1vh}
-  #sGraos #gContratos.denso .ctr .bar{display:none} #sGraos #gContratos.denso .ctr{padding:.2vh 0}
+  #sVendas .ctr .t{font-size:calc(1.65*var(--u))} #sVendas .ctr .t span,#sVendas .ctr .m{font-size:calc(1.4*var(--u))}
+  #sVendas .ctr{padding:.12vh 0;line-height:1.15} #sVendas .ctr .bar{height:.5vh;margin:.1vh 0} #sVendas .ctr .m{margin-top:0}
+  #sVendas #gContratos{display:flex;flex-direction:column;gap:.1vh}
+  #sVendas #gContratos.denso .ctr .bar{display:none} #sVendas #gContratos.denso .ctr{padding:.2vh 0}
   /* ---- linha da chuva compacta: rótulo à esquerda + 7 cartões baixos ---- */
   .chuvaP{flex-direction:row;gap:.8vw;padding:1vh 1vw}
   .chuvaL{width:7.5vw;display:flex;flex-direction:column;justify-content:center;gap:.3vh;border-right:1px solid var(--line);padding-right:.8vw}
@@ -320,3 +320,46 @@
   .cpl.res .cpv{color:#59c3ff}
   /* radar estreito (aba Compras): rótulos das fazendas menores para caberem todas no quadro */
   .app.largo .rotulo{font-size:calc(1.45*var(--u)) !important;padding:.15vh .35vw !important} .app.largo .rotulo em{margin-left:.15vw}
+
+  /* ---- Máquinas e ativos ---- */
+  .frGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:.9vh .6vw;align-content:start}
+  .frT{grid-column:1/-1;display:flex;align-items:baseline;gap:1vw;border-bottom:1px solid var(--line);padding-bottom:.6vh}
+  .frT small{font-size:calc(1.7*var(--u));letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .frT b{font-size:calc(4.4*var(--u));color:var(--accent2);font-variant-numeric:tabular-nums}
+  .frC{background:#0a1c14;border:1px solid var(--line);border-radius:.5vh;padding:.7vh .6vw;display:flex;flex-direction:column;gap:.2vh;min-width:0}
+  .frC b{font-size:calc(3*var(--u));font-variant-numeric:tabular-nums;line-height:1.05}
+  .frC span{font-size:calc(1.45*var(--u));color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .frC.d b{color:var(--accent)}
+  .frTab{display:flex;flex-direction:column;gap:.3vh;flex:1;min-height:0}
+  .frL{display:grid;grid-template-columns:9vw repeat(5,1fr);gap:.4vw;align-items:center;font-size:calc(1.6*var(--u));border-bottom:1px solid #123526;padding:.2vh 0}
+  .frL b{text-align:right;font-variant-numeric:tabular-nums} .frL.cab b{color:var(--muted);font-weight:600;font-size:calc(1.4*var(--u))}
+  #frNota{font-size:calc(1.4*var(--u));color:var(--muted);text-transform:none;letter-spacing:0}
+  /* ---- Investimentos em melhorias ---- */
+  .ivK{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:.8vw}
+  .ivk{background:#0a1c14;border:1px solid var(--line);border-radius:.6vh;padding:.9vh .8vw;display:flex;flex-direction:column;gap:.3vh}
+  .ivk small{font-size:calc(1.45*var(--u));color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+  .ivk b{font-size:calc(3.6*var(--u));font-variant-numeric:tabular-nums;color:var(--accent2);line-height:1.05}
+  .ivCols{display:grid;grid-template-columns:1.1fr 1fr;gap:1vw;flex:1;min-height:0}
+  .ivGrupos{display:flex;flex-direction:column;gap:.7vh;min-height:0;overflow:hidden}
+  .ivg{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;gap:.2vh .6vw;align-items:center}
+  .ivg .t{display:flex;justify-content:space-between;gap:.6vw;font-size:calc(1.6*var(--u))} .ivg .t span{color:var(--muted);white-space:nowrap}
+  .ivg .pt{grid-column:1} .ivg em{grid-column:2;grid-row:1/3;font-style:normal;font-weight:700;font-size:calc(1.7*var(--u));white-space:nowrap;color:var(--accent)}
+  .ivLado{display:flex;flex-direction:column;gap:1vh;min-height:0;overflow:hidden}
+  .ivLado .hb .r{grid-template-columns:7vw 1fr 6.5vw;font-size:calc(1.5*var(--u))}
+  .ivRec{display:flex;flex-direction:column;gap:.5vh}
+  .ivr{display:grid;grid-template-columns:3.2vw 1fr auto;grid-template-rows:auto auto;gap:0 .6vw;font-size:calc(1.5*var(--u));border-bottom:1px solid #123526;padding-bottom:.3vh}
+  .ivr span{color:var(--muted);grid-row:1/3;align-self:center} .ivr b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ivr small{grid-column:2;color:var(--muted);font-size:calc(1.4*var(--u))} .ivr em{grid-column:3;grid-row:1/3;align-self:center;font-style:normal;color:var(--accent2);font-weight:700;white-space:nowrap}
+  .ivLado .hb{flex:none;gap:.4vh}
+
+  /* ---- Aba cheia (vendas): sem radar; grãos à esquerda, bovinos à direita ---- */
+  .app.cheio > .panel:has(.map){display:none}
+  .app.cheio > .car{grid-column:1/-1}
+  .vCols{display:grid;grid-template-columns:1fr 1fr;gap:2vw;flex:1;min-height:0}
+  .vCol{display:flex;flex-direction:column;gap:1.6vh;min-width:0;min-height:0}
+  .vCol + .vCol{border-left:1px solid var(--line);padding-left:2vw}
+  .vCab{display:flex;align-items:center;gap:.6vw;font-size:calc(2*var(--u));font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent2)}
+  .vCab .ico{width:1.3em;height:1.3em}
+  /* bovinos em azul, para separar visualmente dos grãos */
+  .vCol.bov{--accent:#3fa9ff;--accent2:#7cc4ff}
+  .vCol.bov .kpi{border-color:#1d4f75;background:#0a1a26} .vCol.bov .kpi .l .ico{color:var(--accent)}

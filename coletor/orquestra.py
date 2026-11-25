@@ -15,10 +15,12 @@ from datetime import date, datetime
 
 PORTA_CDP = 9333
 # Horas mínimas entre leituras de cada fonte (0 = toda coleta). A coleta roda de 2 em 2 h.
-INTERVALO_H = {"bovinos": 0, "graos": 0, "estoque": 0, "mortes": 4, "compras": 4, "plantio": 8, "colheita": 8, "rh": 8}
+INTERVALO_H = {"bovinos": 0, "graos": 0, "estoque": 0, "mortes": 4, "compras": 4, "plantio": 8, "colheita": 8, "rh": 8,
+              "ativos": 24, "investimentos": 24}
 TOLERANCIA_MIN = 20          # a coleta "atrasa" alguns minutos: 3h50 de idade já conta como 4 h
-ORDEM = ["compras", "rh", "graos", "bovinos", "plantio", "colheita", "estoque", "mortes"]   # as mais demoradas primeiro
+ORDEM = ["compras", "rh", "graos", "bovinos", "plantio", "colheita", "estoque", "mortes", "ativos", "investimentos"]   # as mais demoradas primeiro
 TENTATIVAS = 2
+SOLO = {"investimentos"}     # a rolagem do filtro de grupos só funciona com a aba sozinha: roda depois das paralelas
 
 
 class SemLogin(Exception):
@@ -112,7 +114,19 @@ def t_compras(page, ctx):
     return {"visao": {"compras": compras(page, ctx["esperar"])}}
 
 
-TAREFAS = {"bovinos": t_bovinos, "graos": t_graos, "estoque": t_estoque, "rh": t_rh, "plantio": t_plantio,
+def t_ativos(page, ctx):
+    from patrimonio import ativos
+    _abrir(page, ctx, "ativos")
+    return {"visao": {"ativos": ativos(page, ctx["esperar"])}}
+
+
+def t_investimentos(page, ctx):
+    from patrimonio import investimentos
+    _abrir(page, ctx, "invest")
+    return {"visao": {"investimentos": investimentos(page, ctx["esperar"])}}
+
+
+TAREFAS = {"ativos": t_ativos, "investimentos": t_investimentos, "bovinos": t_bovinos, "graos": t_graos, "estoque": t_estoque, "rh": t_rh, "plantio": t_plantio,
            "colheita": t_colheita, "mortes": t_mortes, "compras": t_compras}
 
 
@@ -180,6 +194,10 @@ def _worker(fila, ctx, resultado, tempos, trava, erros, principal_page=None):
             pw = sync_playwright().start()
             browser = pw.chromium.connect_over_cdp(f"http://127.0.0.1:{PORTA_CDP}")
             page = browser.contexts[0].new_page()
+        try:                              # aba em segundo plano não renderiza as listas dos filtros: finge que está em foco
+            page.context.new_cdp_session(page).send("Emulation.setFocusEmulationEnabled", {"enabled": True})
+        except Exception as e:
+            print("  AVISO foco da aba:", str(e)[:80])
         while True:
             try:
                 nome = fila.get_nowait()
@@ -207,8 +225,10 @@ def coletar(page, ctx, nomes, paralelo=3):
     """Roda as tarefas `nomes`. Devolve (resultado, tempos, erros)."""
     resultado, tempos, erros, trava = {}, {}, [], threading.Lock()
     fila = queue.Queue()
+    sozinhas = [n for n in nomes if n in SOLO] if paralelo > 1 else []
     for n in nomes:
-        fila.put(n)
+        if n not in sozinhas:
+            fila.put(n)
     t0 = time.time()
     threads = []
     for _ in range(max(0, min(paralelo, len(nomes)) - 1)):
@@ -218,6 +238,21 @@ def coletar(page, ctx, nomes, paralelo=3):
     _worker(fila, ctx, resultado, tempos, trava, erros, principal_page=page)
     for t in threads:
         t.join(timeout=1500)
+    for n in sozinhas:                      # tarefas que só funcionam com a aba sozinha
+        _rodar(n, page, ctx, resultado, tempos, trava)
+    # Passada final: o que não veio em paralelo (filtros do Power BI às vezes falham com várias abas) é relido sozinho.
+    # Só vale para fontes lidas nesta rodada; nomes = o que se pediu, resultado = o que chegou (partes de visao/graos/bovinos).
+    if paralelo > 1:
+        ok_ = ctx["ok"]
+        faltam = []
+        for n in nomes:
+            teste = dict(resultado)
+            teste["visao"] = dict(resultado.get("visao", {}))
+            if not ok_(teste, n):
+                faltam.append(n)
+        for n in faltam:
+            print(f"  [repeticao sozinha] {n}")
+            _rodar(n, page, ctx, resultado, tempos, trava)
     tempos["_total_s"] = round(time.time() - t0)
-    print(f"  [tempo] coleta toda: {tempos['_total_s']} s com {max(1, min(paralelo, len(nomes)))} aba(s)")
+    print(f"  [tempo] coleta toda: {tempos['_total_s']} s com {max(1, min(paralelo, len(nomes) - len(sozinhas)))} aba(s)")
     return resultado, tempos, erros

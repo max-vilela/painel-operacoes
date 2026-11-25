@@ -12,7 +12,7 @@
 <body>
 <div class="app">
   <header>
-    <div><h1>Painel de Operações</h1><div class="sub">BOVINOS · GRÃOS · ESTOQUES · COMPRAS · PESSOAS · CLIMA · MERCADO</div></div>
+    <div><h1>Painel de Operações</h1><div class="sub">BOVINOS · GRÃOS · ESTOQUES · COMPRAS · MÁQUINAS · INVESTIMENTOS · PESSOAS · CLIMA · MERCADO</div></div>
     <div id="exemploTag"></div>
     <div class="dolar" id="dolar" title="Dólar comercial (AwesomeAPI)"><span class="l">DÓLAR</span> <b id="dolarV">--</b> <span id="dolarVar"></span></div>
     <div class="clock" id="clock">--:--:--</div>
@@ -30,7 +30,16 @@
     <div class="prog"><i id="prog"></i></div>
     <div class="slides">
 
-      <div class="slide" id="sBov" data-titulo="Bovinos" data-ico="boi">
+      <div class="slide" id="sVendas" data-titulo="Vendas · grãos e bovinos" data-ico="contrato" data-cheio="1">
+        <div class="vCols">
+          <div class="vCol">
+            <div class="vCab"><i class="ico" data-i="trigo"></i>Grãos · contratos de venda</div>
+        <div class="gcols" id="gCols"></div>
+        <h3><span><i class="ico" data-i="contrato"></i>Contratos com saldo a entregar</span> <small id="gPag"></small></h3>
+        <div id="gContratos"></div>
+                </div>
+          <div class="vCol bov">
+            <div class="vCab"><i class="ico" data-i="boi"></i>Bovinos</div>
         <div class="big3">
           <div class="kpi"><div class="l"><i class="ico" data-i="caminhao"></i>Embarcado no mês</div><div class="v" id="bEmb">–</div><div class="a">no ano <b id="bEmbAno">–</b></div></div>
           <div class="kpi"><div class="l"><i class="ico" data-i="agenda"></i>A embarcar no mês</div><div class="v" id="bPend" style="color:var(--accent2)">–</div><div class="a">no ano <b id="bPendAno">–</b></div></div>
@@ -40,6 +49,8 @@
         <h3><span><i class="ico" data-i="caminhao"></i>Próximos embarques</span><small id="embResumo"></small></h3>
         <div class="embh"><span>Dia · frigorífico, fazenda e cabeças</span><span>Total do dia</span></div>
         <div class="emb" id="bCrono"></div>
+                </div>
+        </div>
       </div>
 
       <div class="slide" id="sMortes" data-titulo="Mortes de bovinos" data-ico="alerta">
@@ -70,12 +81,6 @@
         <div class="nota" id="mNota">cantina = abate para consumo, fora das mortes</div>
       </div>
 
-      <div class="slide" id="sGraos" data-titulo="Grãos · contratos de venda" data-ico="trigo">
-        <div class="gcols" id="gCols"></div>
-        <h3><span><i class="ico" data-i="contrato"></i>Contratos com saldo a entregar</span> <small id="gPag"></small></h3>
-        <div id="gContratos"></div>
-      </div>
-
       <div class="slide" id="sPlant" data-titulo="Plantio e colheita" data-ico="broto">
         <div class="est" id="plGrid"></div>
       </div>
@@ -86,6 +91,25 @@
 
       <div class="slide" id="sCompras" data-titulo="Compras · pedidos com saldo" data-ico="contrato" data-largo="1">
         <div class="cpGrid" id="cpGrid"></div>
+      </div>
+
+      <div class="slide" id="sFrota" data-titulo="Máquinas e ativos" data-ico="caminhao">
+        <div class="frGrid" id="frGrid"></div>
+        <h3><span><i class="ico" data-i="pino"></i>Por fazenda</span> <small id="frNota"></small></h3>
+        <div class="frTab" id="frTab"></div>
+      </div>
+
+      <div class="slide" id="sInvest" data-titulo="Investimentos · melhorias" data-ico="armazem">
+        <div class="ivK" id="ivK"></div>
+        <div class="ivCols">
+          <div class="ivGrupos" id="ivGrupos"></div>
+          <div class="ivLado">
+            <h3><span><i class="ico" data-i="pino"></i>Por fazenda</span></h3>
+            <div class="hb" id="ivFaz"></div>
+            <h3><span><i class="ico" data-i="agenda"></i>Maiores obras do ano</span></h3>
+            <div class="ivRec" id="ivRec"></div>
+          </div>
+        </div>
       </div>
 
       <div class="slide" id="sRH" data-titulo="Funcionários" data-ico="pessoas">
