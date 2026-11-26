@@ -12,7 +12,7 @@ const CFG = {
   climaAtrasoDias: 1,  // chuva medida mais velha que isso fica em laranja ("há N d")
   relogioSeg: 1,
   carrosselSeg: 20,        // tempo de cada assunto no bloco da direita (bovinos, grãos, estoques, mercado)
-  embarquesNaTela: 12,    // máximo de DIAS de embarque do mês listados no assunto Bovinos; o que passar disso entra na linha "+ N dias"
+  embarquesNaTela: 7,     // máximo de DIAS de embarque na tela (de qualquer mês); o que passar disso entra na linha "+ N dias"
   contratosNaTela: 9,      // máximo de contratos com saldo listados no assunto Grãos (vencimento mais próximo primeiro); passou disso, o título avisa quantos faltam
   janelaColeta: ["08:30", "19:00"],  // fora dessa janela o painel NÃO acusa atraso (à noite não há coleta)
   marqueePxSeg: 80,        // velocidade da faixa de cotações, em px/s numa tela de 1080 de altura (escala com a tela)
@@ -241,27 +241,20 @@ function render(d){
 function desenharEmbarques(embarques, refMes){
   const total = embarques.reduce((s, c) => s + c.cabecas, 0);
   $("embResumo").textContent = embarques.length ? `${embarques.length} programados · ${fmt(total)} cab.` : "nenhum programado";
-  // Embarques do mês agrupados por dia (a soma bate com o cartão "A embarcar no mês"); o que é dos meses seguintes
-  // entra numa linha só, para o total geral também fechar. refMes = "11/2026" (mês do cartão).
-  const mm = refMes ? refMes.slice(0, 2) : null;
-  const doMes = mm ? embarques.filter(c => c.data.slice(3, 5) === mm) : embarques;
-  const depois = mm ? embarques.filter(c => c.data.slice(3, 5) !== mm) : [];
+  // Próximos embarques por dia, de qualquer mês, até o limite da tela (CFG.embarquesNaTela dias); o resto vira uma linha só.
   const soma = a => a.reduce((s, c) => s + c.cabecas, 0);
-  const nomeMes = n => ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"][+n - 1];
-  const meses = [...new Set(depois.map(c => nomeMes(c.data.slice(3, 5))))].join("/");
   const dias = [];
-  doMes.forEach(c => { const u = dias[dias.length - 1]; if(u && u.data === c.data) u.itens.push(c); else dias.push({ data: c.data, itens: [c] }); });
+  embarques.forEach(c => { const u = dias[dias.length - 1]; if(u && u.data === c.data) u.itens.push(c); else dias.push({ data: c.data, itens: [c] }); });
   const curto = c => c.frigorifico.split(" ")[0];           // "Agra Agroindustrial" -> "Agra"; a cidade só aparece se o mesmo frigorífico tem 2 cidades
-  const cidades = {}; doMes.forEach(c => (cidades[curto(c)] ??= new Set()).add(c.cidade));
-  let html = dias.slice(0, CFG.embarquesNaTela).map(d => `<div class="dia"><b class="d">${d.data}</b>
+  const cidades = {}; embarques.forEach(c => (cidades[curto(c)] ??= new Set()).add(c.cidade));
+  const tela = dias.slice(0, CFG.embarquesNaTela), resto = dias.slice(CFG.embarquesNaTela);
+  let html = tela.map(d => `<div class="dia"><b class="d">${d.data}</b>
       <div class="its">${d.itens.map(c => `<span><em>${curto(c)}${cidades[curto(c)].size > 1 ? ` <i>${c.cidade}</i>` : ""}</em> ${c.fazenda} <b>${fmt(c.cabecas)}</b></span>`).join("")}</div>
       <b class="tt">${fmt(soma(d.itens))}</b></div>`).join("");
-  if(dias.length > CFG.embarquesNaTela)
-    html += `<div class="dia sum"><span class="d">+ ${dias.length - CFG.embarquesNaTela} dias</span><span></span><b class="tt">${fmt(soma(dias.slice(CFG.embarquesNaTela).flatMap(d => d.itens)))}</b></div>`;
-  if(doMes.length)
-    html += `<div class="dia tot"><b class="d">Total</b><span class="its">do mês · ${doMes.length} embarques em ${dias.length} dias</span><b class="tt">${fmt(soma(doMes))}</b></div>`;
-  if(depois.length)
-    html += `<div class="dia sum"><span class="d">Depois</span><span class="its">${meses} · ${depois.length} embarques</span><b class="tt">${fmt(soma(depois))}</b></div>`;
+  if(resto.length)
+    html += `<div class="dia sum"><span class="d">+ ${resto.length} dias</span><span class="its">até ${resto[resto.length - 1].data} · ${resto.reduce((s, d) => s + d.itens.length, 0)} embarques</span><b class="tt">${fmt(soma(resto.flatMap(d => d.itens)))}</b></div>`;
+  if(embarques.length)
+    html += `<div class="dia tot"><b class="d">Total</b><span class="its">${embarques.length} embarques programados em ${dias.length} dias</span><b class="tt">${fmt(total)}</b></div>`;
   setHtmlSuave($("bCrono"), html);
 }
 
@@ -472,12 +465,12 @@ function desenharEstoques(v){
   const r = v.rebanho;
   let reb = vazio("Rebanho", "boi", "#e6c84a", "full");
   if(r && r.total){
-    const conf = r.confinamento || 0, pasto = r.total - conf, p1 = pc(conf, r.total);
+    const conf = r.confinamento || 0, pasto = r.total - conf, p1 = pc(conf, r.total);   // pecuária = tudo que não está no confinamento
     reb = `<section class="ec full" style="--c:#e6c84a"><h4>${ico("boi")}Rebanho</h4>
       <div class="linha"><span class="n">${fmt(r.total)}<small>cab.</small></span>
         <div class="comp"><div class="eb"><i style="width:${p1}%;background:#e6c84a"></i><i style="width:${100 - p1}%;background:#8a7a3a"></i></div>
           <div class="el"><div><small><i class="lg" style="--c:#e6c84a"></i>Confinamento</small><b>${fmt(conf)} <em>${p1}%</em></b></div>
-            <div><small><i class="lg" style="--c:#8a7a3a"></i>Pasto</small><b>${fmt(pasto)} <em>${100 - p1}%</em></b></div></div></div></div></section>`;
+            <div><small><i class="lg" style="--c:#8a7a3a"></i>Pecuária</small><b>${fmt(pasto)} <em>${100 - p1}%</em></b></div></div></div></div></section>`;
   }
 
   // GRÃOS: número + barra negociado/livre + safras (discretas)
@@ -505,12 +498,13 @@ function desenharEstoques(v){
       <div class="tiles">${tile("Diesel", c.diesel, true)}${tile("Gasolina", c.gasolina)}${tile("Etanol", c.etanol)}</div></section>`;
   }
   setHtmlSuave(el, reb + grao("Soja", "soja", "#35d07f") + grao("Milho", "milho", "#f2b33d") + comb);
+  desenharEstoqueFazendas(v.estoquePorFazenda);
 }
 
 function desenharFaixa(v){
   v = v || {};
   const r = v.rebanho;
-  $("bReb").innerHTML = r ? `Rebanho atual <b>${fmt(r.total)}</b> cabeças · confinamento <b>${fmt(r.confinamento)}</b> · pasto <b>${fmt(r.total - r.confinamento)}</b>` : "";
+  $("bReb").innerHTML = r ? `Rebanho atual <b>${fmt(r.total)}</b> cabeças · confinamento <b>${fmt(r.confinamento)}</b> · pecuária <b>${fmt(r.total - r.confinamento)}</b>` : "";
   desenharEstoques(v);
   desenharPlantio(v.plantio, v.colheita || {});
   desenharRH(v.rh);
@@ -751,4 +745,27 @@ function desenharInvest(i){
   const maxF = Math.max(...(i.porFilial || []).map(f => f.valor), 1);
   setHtmlSuave($("ivFaz"), (i.porFilial || []).slice(0, 6).map(f => `<div class="r"><span>${f.filial}</span><div class="b"><i style="width:${f.valor / maxF * 100}%"></i></div><b>${reaisMi(f.valor)}</b></div>`).join(""));
   setHtmlSuave($("ivRec"), (i.maiores || []).slice(0, 5).map((r, n) => `<div class="ivr"><span>${n + 1}º</span><b>${titulo(r.patrimonio.replace(/^\d+\s*-\s*/, ""))}</b><small>${r.filial}</small><em>${reaisMi(r.valor)}</em></div>`).join(""));
+}
+
+
+/* ---------- ESTOQUE POR FAZENDA: uma linha por fazenda; em cada coluna o número e uma barra do tamanho relativo
+   (comparada com a maior fazenda daquela coluna), para dar para comparar de longe ---------- */
+function desenharEstoqueFazendas(lista){
+  const el = $("estFaz"); if(!el) return;
+  if(!Array.isArray(lista) || !lista.length){ setHtmlSuave(el, '<div class="nota">sem leitura por fazenda</div>'); return; }
+  const ordem = f => { const i = CFG.ordemFazendas.findIndex(n => n.toLowerCase() === f.toLowerCase()); return i < 0 ? 99 : i; };
+  const fz = [...lista].sort((a, b) => ordem(a.fazenda) - ordem(b.fazenda));
+  const max = k => Math.max(1, ...fz.map(f => f[k] || 0));
+  const M = { bovinos: max("bovinos"), soja: max("soja"), milho: max("milho"), diesel: max("diesel") };
+  const cel = (f, k, un, cor) => !f[k] ? `<div class="c vz">–</div>`
+    : `<div class="c"><b>${fmt(f[k])}<small>${un}</small></b><span class="br"><i style="width:${f[k] / M[k] * 100}%;background:${cor}"></i></span></div>`;
+  const bov = f => {
+    if(!f.bovinos) return `<div class="c vz">–</div>`;
+    const w = f.bovinos / M.bovinos * 100, pc = f.confinamento / f.bovinos * 100;
+    return `<div class="c"><b>${fmt(f.bovinos)}<small>cab.</small></b>
+      <span class="br" style="width:${Math.max(w, 2)}%"><i style="width:${pc}%;background:#e6c84a"></i><i style="width:${100 - pc}%;background:#8a7a3a"></i></span>
+      <span class="sb">${f.confinamento ? `conf. ${fmt(f.confinamento)} · ` : ""}pec. ${fmt(f.pecuaria)}</span></div>`;
+  };
+  setHtmlSuave(el, `<div class="r h"><span></span><span>Bovinos <i class="lg" style="--c:#e6c84a"></i>confinamento <i class="lg" style="--c:#8a7a3a"></i>pecuária</span><span>Soja</span><span>Milho</span><span>Diesel</span></div>` +
+    fz.map((f, i) => `<div class="r" style="--i:${i}"><span class="f">${f.fazenda}</span>${bov(f)}${cel(f, "soja", "sc", "#35d07f")}${cel(f, "milho", "sc", "#f2b33d")}${cel(f, "diesel", "L", "#59c3ff")}</div>`).join(""));
 }

@@ -479,6 +479,14 @@ def ger_estoque(page, esperar):
     if bi_tot and abs(bi_tot - tot) > 1:
         print(f"  AVISO rebanho: soma das linhas {tot} != Total do BI {bi_tot} (usando o do BI)")
     out["rebanho"] = {"total": round(bi_tot or tot), "confinamento": round(conf)}
+    faz = {}                                  # por fazenda: armazém CONFINAMENTO = confinamento; o resto (PECUARIA, BOVINO safra) = pecuária
+    for l in linhas:
+        if not l[5].strip():
+            continue
+        f = faz.setdefault(_nome_filial(l[0]), {"bovinos": 0, "confinamento": 0})
+        f["bovinos"] += num(l[5])
+        if "CONFINAMENTO" in l[1].upper():
+            f["confinamento"] += num(l[5])
 
     abrir_pagina(page, "Saldo Atual de Produtos", esperar)
     graos = {}
@@ -495,6 +503,8 @@ def ger_estoque(page, esperar):
         for l in linhas:
             s = re.sub(r"(?i)safra", "", l[7]).strip() or l[7]
             por[s] = por.get(s, 0) + num(l[4]) / 60
+            f = faz.setdefault(_nome_filial(l[0]), {"bovinos": 0, "confinamento": 0})
+            f[chave] = f.get(chave, 0) + num(l[4]) / 60
         kg = total if total is not None else sum(num(l[4]) for l in linhas)
         graos[chave] = {"sacas": round(kg / 60), "kg": round(kg),
                         "porSafra": [{"safra": s, "sacas": round(v)} for s, v in sorted(por.items(), key=lambda kv: -kv[1]) if round(v)]}
@@ -505,9 +515,28 @@ def ger_estoque(page, esperar):
         if not filtrar_dropdown(page, "Grupo de Produto", grupo):
             print("  AVISO estoque: grupo não encontrado:", grupo); continue
         esperar(page)
-        comb[chave] = round(sum(num(l[4]) for l in ler_tabela(page, 11)))   # saldo (L) na 5ª coluna
+        linhas = ler_tabela(page, 11)
+        comb[chave] = round(sum(num(l[4]) for l in linhas))   # saldo (L) na 5ª coluna
+        if chave == "diesel":
+            for l in linhas:
+                f = faz.setdefault(_nome_filial(l[0]), {"bovinos": 0, "confinamento": 0})
+                f["diesel"] = f.get("diesel", 0) + num(l[4])
     out["combustivel"] = comb
+    out["estoquePorFazenda"] = [
+        {"fazenda": nome, "bovinos": round(f["bovinos"]), "confinamento": round(f["confinamento"]),
+         "pecuaria": round(f["bovinos"] - f["confinamento"]), "soja": round(f.get("soja", 0)),
+         "milho": round(f.get("milho", 0)), "diesel": round(f.get("diesel", 0))}
+        for nome, f in faz.items() if not nome.startswith("Esc")]
     return out
+
+
+FILIAIS = {"01": "Tucano", "02": "Java", "03": "Ponte de Pedra", "04": "Promissão", "05": "Galheiro", "06": "Panamá",
+           "07": "Mato Grosso", "11": "Esc. Campo Grande", "12": "Esc. Campo Novo"}
+
+
+def _nome_filial(txt):
+    """'01 - FAZENDA TUCANO' ou só '01' -> 'Tucano' (mesmo nome nas tabelas de bovinos, grãos e combustível)."""
+    return FILIAIS.get(txt.strip()[:2], txt.strip())
 
 
 def linhas_ferias(fr):

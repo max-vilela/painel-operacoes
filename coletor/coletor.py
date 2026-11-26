@@ -196,7 +196,7 @@ def _ok(dados, fonte):
 
 
 FONTES = ["bovinos", "graos", "estoque", "rh", "plantio", "colheita", "mortes", "compras", "ativos", "investimentos"]
-CHAVES_VISAO = {"estoque": ["rebanho", "estoqueGraos", "combustivel"], "rh": ["rh"], "plantio": ["plantio"],
+CHAVES_VISAO = {"estoque": ["rebanho", "estoqueGraos", "combustivel", "estoquePorFazenda"], "rh": ["rh"], "plantio": ["plantio"],
                 "colheita": ["colheita"], "mortes": ["mortes"], "compras": ["compras"],
                 "ativos": ["ativos"], "investimentos": ["investimentos"]}
 
@@ -229,6 +229,8 @@ def mesclar_com_anterior(dados, agora, puladas=()):
             v, pv = dados["visao"], ant.get("visao") or {}
             if not v.get("rebanho") and pv.get("rebanho"):
                 v["rebanho"] = pv["rebanho"]
+            if not v.get("estoquePorFazenda") and pv.get("estoquePorFazenda"):
+                v["estoquePorFazenda"] = pv["estoquePorFazenda"]
             for prod in ("soja", "milho"):                       # só o produto que faltou volta do anterior
                 if not (v.get("estoqueGraos") or {}).get(prod) and (pv.get("estoqueGraos") or {}).get(prod):
                     v.setdefault("estoqueGraos", {})[prod] = pv["estoqueGraos"][prod]
